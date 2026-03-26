@@ -1,0 +1,11 @@
+export { default as Tercero } from "./tercero.model.js";
+export { default as Asignatura } from "./asignatura.model.js";
+export { default as Programa } from "./programa.model.js";
+export { default as Curso } from "./curso.model.js";
+export { default as Pensum } from "./pensum.model.js";
+export { default as Historia } from "./historia.model.js";
+export { default as DetallePensum } from "./detalle_pensum.model.js";
+export { default as TercPensum } from "./terc_pensum.model.js";
+export { default as Prematricula } from "./prematricula.model.js";
+export { default as Auditoria } from "./auditoria.model.js";
+export { default as AppUsuario } from "./app_usuario.model.js";

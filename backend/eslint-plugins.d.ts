@@ -1,0 +1,30 @@
+// Type declarations for ESLint plugins without official TypeScript types
+// This file suppresses TypeScript warnings for plugins that don't ship with .d.ts files
+
+declare module "eslint-plugin-promise" {
+  import type { ESLint } from "eslint";
+
+  const plugin: ESLint.Plugin;
+  export default plugin;
+}
+
+declare module "eslint-plugin-security" {
+  import type { ESLint } from "eslint";
+
+  const plugin: ESLint.Plugin;
+  export default plugin;
+}
+
+declare module "eslint-plugin-n" {
+  import type { ESLint } from "eslint";
+
+  const plugin: ESLint.Plugin;
+  export default plugin;
+}
+
+declare module "eslint-config-prettier/flat" {
+  import type { Linter } from "eslint";
+
+  const config: Linter.FlatConfig;
+  export default config;
+}

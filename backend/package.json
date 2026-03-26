@@ -1,0 +1,42 @@
+{
+  "name": "backend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "init": "node src/tools/init.js",
+    "clean": "pnpm run logs:clear && rm -rf node_modules && pnpm install",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:check": "eslint . --quiet",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "code:check": "pnpm run lint:check && pnpm run format:check",
+    "code:fix": "pnpm run lint:fix && pnpm run format"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "oracledb": "^6.9.0",
+    "sequelize": "^6.37.7",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "@types/supertest": "^6.0.3",
+    "eslint-plugin-n": "^17.23.1",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-security": "^3.0.1",
+    "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3",
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
+  }
+}

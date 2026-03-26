@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* Estilos base personalizados para Tailwind v4 */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Asegurar que los botones tengan cursor pointer */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Asegurar cursor pointer en elementos interactivos */
+  a,
+  label,
+  select {
+    cursor: pointer;
+  }
+
+  /* Mejorar inputs */
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Evita zoom en móviles */
+  }
+}
+
+/* Utilidades personalizadas para modales y overlays */
+@layer utilities {
+  /* Backdrop para modales */
+  .modal-backdrop {
+    backdrop-filter: blur(2px);
+  }
+
+  /* Prevenir scroll del body cuando modal está abierto */
+  .modal-open {
+    overflow: hidden;
+  }
+
+  /* Animación suave para modales */
+  .modal-enter {
+    animation: modalFadeIn 0.2s ease-out;
+  }
+
+  .modal-exit {
+    animation: modalFadeOut 0.2s ease-in;
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
