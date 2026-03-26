@@ -1,3 +1,5 @@
+import { QueryTypes } from "sequelize";
+import { sequelize } from "../config/sequelize.js";
 import models from "../models/index.js";
 
 const ENTITIES = {
@@ -39,6 +41,58 @@ const buildWhereFromQuery = (pkFields, query) => {
 };
 
 class SanayaController {
+  static async nextAsignaturaId(_req, res) {
+    try {
+      const result = await sequelize.query(
+        "SELECT SANAYA.sq_asignaturas.NEXTVAL AS asig_id FROM DUAL",
+        {
+          type: QueryTypes.SELECT,
+        }
+      );
+      const nextId = result[0]?.asig_id;
+      return res.json({ asig_id: nextId });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async executeSpIngTercPensuns(req, res) {
+    try {
+      const pensId = Number(req.body?.pens_id);
+      const tercId = Number(req.body?.terc_id);
+      const tepePeriodo = String(req.body?.tepe_periodo ?? "").trim();
+
+      if (
+        !Number.isFinite(pensId) ||
+        !Number.isFinite(tercId) ||
+        !tepePeriodo
+      ) {
+        return res.status(400).json({
+          error:
+            "Parámetros inválidos. Requiere pens_id, terc_id y tepe_periodo.",
+        });
+      }
+
+      await sequelize.query(
+        "BEGIN SANAYA.sp_ing_terc_pensuns(:pens_id, :terc_id, :tepe_periodo); END;",
+        {
+          bind: {
+            pens_id: pensId,
+            terc_id: tercId,
+            tepe_periodo: tepePeriodo,
+          },
+          type: QueryTypes.RAW,
+        }
+      );
+
+      return res.status(201).json({
+        message: "Procedimiento ejecutado correctamente",
+      });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   static async list(req, res) {
     try {
       const modelConfig = getModel(req.params.entity);

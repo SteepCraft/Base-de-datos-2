@@ -11,6 +11,14 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
@@ -18,6 +26,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Sesión expirada o inválida
       localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
 
       // Solo redirigir si no estamos ya en login
       if (!window.location.pathname.includes("/login")) {

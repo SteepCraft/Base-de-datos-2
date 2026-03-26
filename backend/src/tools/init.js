@@ -6,13 +6,22 @@ import models from "../models/index.js";
 
 dotenv.config();
 
-const DEFAULT_ADMIN = {
-  email: process.env.ADMIN_EMAIL || "admin@sanaya.local",
-  password: process.env.ADMIN_PASSWORD || "admin123",
-  nombres: process.env.ADMIN_NOMBRES || "Super",
-  apellidos: process.env.ADMIN_APELLIDOS || "Admin",
-  rol: "SUPER_ADMIN",
-};
+const DEFAULT_ADMINS = [
+  {
+    email: process.env.ADMIN_EMAIL || "admin@sanaya.local",
+    password: process.env.ADMIN_PASSWORD || "admin123",
+    nombres: process.env.ADMIN_NOMBRES || "Super",
+    apellidos: process.env.ADMIN_APELLIDOS || "Admin",
+    rol: "SUPER_ADMIN",
+  },
+  {
+    email: process.env.ADMIN_EMAIL_SECONDARY || "admin@sanaya.com",
+    password: process.env.ADMIN_PASSWORD_SECONDARY || "123456",
+    nombres: process.env.ADMIN_NOMBRES_SECONDARY || "Admin",
+    apellidos: process.env.ADMIN_APELLIDOS_SECONDARY || "Secundario",
+    rol: "SUPER_ADMIN",
+  },
+];
 
 const ensureAuthTable = async () => {
   await sequelize.query(`
@@ -36,27 +45,29 @@ const ensureAuthTable = async () => {
   `);
 };
 
-const ensureAdmin = async () => {
-  const admin = await models.AppUsuario.findOne({
-    where: { usua_email: DEFAULT_ADMIN.email },
-  });
+const ensureAdmins = async () => {
+  for (const adminConfig of DEFAULT_ADMINS) {
+    const admin = await models.AppUsuario.findOne({
+      where: { usua_email: adminConfig.email },
+    });
 
-  if (admin) {
-    console.info("ℹ️ Usuario administrador ya existe");
-    return;
+    if (admin) {
+      console.info(`ℹ️ Usuario administrador ya existe: ${adminConfig.email}`);
+      continue;
+    }
+
+    const hash = await bcrypt.hash(adminConfig.password, 10);
+    await models.AppUsuario.create({
+      usua_email: adminConfig.email,
+      usua_password: hash,
+      usua_nombres: adminConfig.nombres,
+      usua_apellidos: adminConfig.apellidos,
+      usua_rol: adminConfig.rol,
+      usua_estado: 1,
+    });
+
+    console.info(`✅ Admin creado: ${adminConfig.email}`);
   }
-
-  const hash = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
-  await models.AppUsuario.create({
-    usua_email: DEFAULT_ADMIN.email,
-    usua_password: hash,
-    usua_nombres: DEFAULT_ADMIN.nombres,
-    usua_apellidos: DEFAULT_ADMIN.apellidos,
-    usua_rol: DEFAULT_ADMIN.rol,
-    usua_estado: 1,
-  });
-
-  console.info(`✅ Admin creado: ${DEFAULT_ADMIN.email}`);
 };
 
 const init = async () => {
@@ -67,7 +78,7 @@ const init = async () => {
     await ensureAuthTable();
     console.info("✅ Tabla APP_USUARIOS validada");
 
-    await ensureAdmin();
+    await ensureAdmins();
 
     console.info("✅ Inicialización completada");
     process.exit(0);

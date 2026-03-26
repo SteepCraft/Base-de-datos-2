@@ -20,10 +20,14 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get("/auth/me");
       setUser(response.data.user);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+      if (response.data.token) {
+        localStorage.setItem("access_token", response.data.token);
+      }
       return { success: true };
     } catch (_error) {
       setUser(null);
       localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
       return { success: false };
     } finally {
       setLoading(false);
@@ -39,6 +43,9 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post("/auth/login", { email, password });
       setUser(response.data.user);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+      if (response.data.token) {
+        localStorage.setItem("access_token", response.data.token);
+      }
       return { success: true };
     } catch (error) {
       return {
@@ -56,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
     }
   };
 

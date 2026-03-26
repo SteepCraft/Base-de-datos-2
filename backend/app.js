@@ -7,11 +7,14 @@ import { authenticate } from "./src/auth/auth.middleware.js";
 import authRoutes from "./src/auth/auth.routes.js";
 import { sequelize } from "./src/config/sequelize.js";
 import models from "./src/models/index.js";
+import dataTransferRoutes from "./src/routes/data-transfer.routes.js";
 import sanayaRoutes from "./src/routes/sanaya.routes.js";
 
 console.info("✅ Configuración completa cargada correctamente");
 
 const app = express();
+
+app.use(cookieParser());
 
 const corsWhitelist = (process.env.FRONTEND_URL || "")
   .split(",")
@@ -94,9 +97,8 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 app.use(apiLimiter);
-
-app.use(cookieParser());
 app.use("/api/auth", authRoutes);
+app.use("/api/sanaya", authenticate, dataTransferRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

@@ -3,6 +3,12 @@ import SanayaController from "../controllers/sanaya.controller.js";
 
 const router = Router();
 
+router.get("/asignaturas/next-id", SanayaController.nextAsignaturaId);
+router.post(
+  "/terc-pensums/execute-sp",
+  SanayaController.executeSpIngTercPensuns
+);
+
 router.get("/:entity", SanayaController.list);
 router.get("/:entity/id/:id", SanayaController.getById);
 router.get("/:entity/one", SanayaController.getOneByPkQuery);

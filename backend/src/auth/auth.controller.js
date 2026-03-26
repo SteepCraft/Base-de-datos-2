@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-
+import { Op, col, fn, where } from "sequelize";
 import models from "../models/index.js";
 
 dotenv.config();
@@ -42,13 +42,15 @@ const signToken = (payload) => {
 class AuthController {
   static async login(req, res) {
     try {
-      const { email, password } = req.body || {};
+      const { email, password, documento } = req.body || {};
       if (!email || !password) {
         return res.status(400).json({ error: "Email y contraseña requeridos" });
       }
 
+      const normalizedEmail = String(email).trim().toLowerCase();
+
       const user = await models.AppUsuario.findOne({
-        where: { usua_email: email },
+        where: where(fn("LOWER", col("USUA_EMAIL")), normalizedEmail),
       });
 
       if (!user)
@@ -57,6 +59,32 @@ class AuthController {
       const plain = user.get({ plain: true });
       if (plain.usua_estado !== 1) {
         return res.status(403).json({ error: "Usuario inactivo" });
+      }
+
+      if (plain.usua_rol !== "SUPER_ADMIN") {
+        if (!documento) {
+          return res.status(400).json({
+            error: "Documento requerido para usuarios no administradores",
+          });
+        }
+
+        const normalizedDoc = String(documento).trim().toUpperCase();
+        const tercero = await models.Tercero.findOne({
+          where: {
+            [Op.and]: [
+              where(fn("LOWER", col("TERC_CORREO")), normalizedEmail),
+              where(fn("UPPER", col("TERC_NRO_DOC")), normalizedDoc),
+            ],
+          },
+          attributes: ["terc_id", "terc_correo", "terc_nro_doc"],
+          raw: true,
+        });
+
+        if (!tercero) {
+          return res.status(401).json({
+            error: "Credenciales inválidas para tercero (correo/documento)",
+          });
+        }
       }
 
       const ok = await bcrypt.compare(password, plain.usua_password);
@@ -73,6 +101,7 @@ class AuthController {
 
       return res.json({
         message: "Login exitoso",
+        token,
         user: {
           id: plain.usua_id,
           email: plain.usua_email,
