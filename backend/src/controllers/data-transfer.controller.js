@@ -3,7 +3,32 @@ import * as XLSX from "xlsx";
 import { sequelize } from "../config/sequelize.js";
 import models from "../models/index.js";
 
-const SUPPORTED_EXPORTS = new Set(["historias", "auditorias"]);
+const SUPPORTED_EXPORTS = new Set([
+  "historias",
+  "auditorias",
+  "usuarios",
+  "asignaturas",
+  "cursos",
+  "detalles_pensum",
+  "pensums",
+  "prematriculas",
+  "programas",
+  "terceros",
+  "terc_pensums",
+]);
+const SUPPORTED_IMPORTS = {
+  terceros: { mode: "custom" },
+  auditorias: { model: "Auditoria" },
+  usuarios: { model: "AppUsuario" },
+  asignaturas: { model: "Asignatura" },
+  cursos: { model: "Curso" },
+  detalles_pensum: { model: "DetallePensum" },
+  pensums: { model: "Pensum" },
+  prematriculas: { model: "Prematricula" },
+  programas: { model: "Programa" },
+  terc_pensums: { model: "TercPensum" },
+  historias: { model: "Historia" },
+};
 const SUPPORTED_FORMATS = new Set(["xlsx", "csv"]);
 const HEADER_TERC_ID = new Set(["TERC_ID", "ID"]);
 const HEADER_TERC_TIPO_DOC = new Set(["TERC_TIPO_DOC", "TIPO_DOC"]);
@@ -52,6 +77,37 @@ const parseRowsFromFile = (file) => {
   return XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
 };
 
+const getGeneratedId = (row) => {
+  if (!row || typeof row !== "object") return null;
+  if (row.ID !== undefined && row.ID !== null) return Number(row.ID);
+  if (row.id !== undefined && row.id !== null) return Number(row.id);
+  const firstValue = Object.values(row)[0];
+  return Number(firstValue);
+};
+
+const normalizeImportValue = (value) => {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed === "" ? null : trimmed;
+  }
+  return value;
+};
+
+const getModelFieldMap = (model) => {
+  const map = new Map();
+  const attributes = model?.rawAttributes || {};
+
+  for (const [attrName, attrDef] of Object.entries(attributes)) {
+    map.set(normalizeHeader(attrName), attrName);
+    if (attrDef?.field) {
+      map.set(normalizeHeader(attrDef.field), attrName);
+    }
+  }
+
+  return map;
+};
+
 const buildHistoriaReport = () =>
   sequelize.query(
     `
@@ -88,12 +144,110 @@ const buildAuditoriaReport = () =>
     { type: QueryTypes.SELECT }
   );
 
+const buildGenericReport = (modelName) => {
+  const model = models[modelName];
+  if (!model) {
+    throw new Error(`Modelo no encontrado: ${modelName}`);
+  }
+  return model.findAll({ raw: true });
+};
+
 const reportBuilders = {
   historias: buildHistoriaReport,
   auditorias: buildAuditoriaReport,
+  usuarios: () => buildGenericReport("AppUsuario"),
+  asignaturas: () => buildGenericReport("Asignatura"),
+  cursos: () => buildGenericReport("Curso"),
+  detalles_pensum: () => buildGenericReport("DetallePensum"),
+  pensums: () => buildGenericReport("Pensum"),
+  prematriculas: () => buildGenericReport("Prematricula"),
+  programas: () => buildGenericReport("Programa"),
+  terceros: () => buildGenericReport("Tercero"),
+  terc_pensums: () => buildGenericReport("TercPensum"),
 };
 
 class DataTransferController {
+  static importEntity(req, res) {
+    const entity = String(req.params.entity || "").toLowerCase();
+    const config = SUPPORTED_IMPORTS[entity];
+
+    if (!config) {
+      return res.status(400).json({
+        error: "Entidad no soportada para importación",
+        supported: Object.keys(SUPPORTED_IMPORTS),
+      });
+    }
+
+    if (config.mode === "custom") {
+      return DataTransferController.importTerceros(req, res);
+    }
+
+    return DataTransferController.importGenericEntity(req, res, entity, config);
+  }
+
+  static async importGenericEntity(req, res, entity, config) {
+    try {
+      if (!req.file?.buffer) {
+        return res
+          .status(400)
+          .json({ error: "Archivo requerido en campo 'file'" });
+      }
+
+      const model = models[config.model];
+      if (!model) {
+        return res.status(500).json({
+          error: `No se encontró el modelo para la entidad '${entity}'`,
+        });
+      }
+
+      const rows = parseRowsFromFile(req.file);
+      if (!rows.length) {
+        return res
+          .status(400)
+          .json({ error: "El archivo no contiene filas para importar" });
+      }
+
+      const fieldMap = getModelFieldMap(model);
+      const failed = [];
+      let inserted = 0;
+
+      for (let index = 0; index < rows.length; index += 1) {
+        const rawRow = rows[index];
+        const excelRow = index + 2;
+        const data = {};
+
+        for (const [key, value] of Object.entries(rawRow)) {
+          const attrName = fieldMap.get(normalizeHeader(key));
+          if (!attrName) continue;
+          data[attrName] = normalizeImportValue(value);
+        }
+
+        if (!Object.keys(data).length) {
+          failed.push({
+            row: excelRow,
+            reason: "La fila no contiene columnas reconocidas para la entidad",
+          });
+          continue;
+        }
+
+        try {
+          await model.create(data);
+          inserted += 1;
+        } catch (error) {
+          failed.push({ row: excelRow, reason: error.message });
+        }
+      }
+
+      return res.status(200).json({
+        message: `Importación completada para ${entity}. ${inserted} registros insertados.`,
+        inserted,
+        failed,
+      });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   static async exportEntity(req, res) {
     try {
       const entity = String(req.params.entity || "").toLowerCase();
@@ -167,26 +321,31 @@ class DataTransferController {
 
       const parsedRows = rows.map((rawRow, index) => {
         const excelRow = index + 2;
-        const tercId = toNumber(getCell(rawRow, HEADER_TERC_ID));
-        const tercNroDoc = textValue(getCell(rawRow, HEADER_TERC_NRO_DOC), 10);
+
+        const data = {
+          terc_id: toNumber(getCell(rawRow, HEADER_TERC_ID)),
+          terc_tipo_doc: textValue(getCell(rawRow, HEADER_TERC_TIPO_DOC), 2),
+          terc_nro_doc: textValue(getCell(rawRow, HEADER_TERC_NRO_DOC), 10),
+          terc_genero: textValue(getCell(rawRow, HEADER_TERC_GENERO), 1),
+          terc_nombres: textValue(getCell(rawRow, HEADER_TERC_NOMBRES), 50),
+          terc_apellidos: textValue(getCell(rawRow, HEADER_TERC_APELLIDOS), 50),
+          terc_direc: textValue(getCell(rawRow, HEADER_TERC_DIREC), 50),
+          terc_correo: textValue(getCell(rawRow, HEADER_TERC_CORREO), 50),
+          terc_movil: textValue(getCell(rawRow, HEADER_TERC_MOVIL), 10),
+          terc_tipo: textValue(getCell(rawRow, HEADER_TERC_TIPO), 1),
+        };
+
+        // Provide default values for NOT NULL fields if they are missing
+        if (!data.terc_tipo_doc) data.terc_tipo_doc = "CC";
+        if (!data.terc_nro_doc) data.terc_nro_doc = `TEMP-${excelRow}`;
+        if (!data.terc_genero) data.terc_genero = "O";
+        if (!data.terc_nombres) data.terc_nombres = "N/A";
+        if (!data.terc_apellidos) data.terc_apellidos = "N/A";
+        if (!data.terc_tipo) data.terc_tipo = "E";
 
         return {
           excelRow,
-          data: {
-            terc_id: tercId,
-            terc_tipo_doc: textValue(getCell(rawRow, HEADER_TERC_TIPO_DOC), 2),
-            terc_nro_doc: tercNroDoc,
-            terc_genero: textValue(getCell(rawRow, HEADER_TERC_GENERO), 1),
-            terc_nombres: textValue(getCell(rawRow, HEADER_TERC_NOMBRES), 50),
-            terc_apellidos: textValue(
-              getCell(rawRow, HEADER_TERC_APELLIDOS),
-              50
-            ),
-            terc_direc: textValue(getCell(rawRow, HEADER_TERC_DIREC), 50),
-            terc_correo: textValue(getCell(rawRow, HEADER_TERC_CORREO), 50),
-            terc_movil: textValue(getCell(rawRow, HEADER_TERC_MOVIL), 10),
-            terc_tipo: textValue(getCell(rawRow, HEADER_TERC_TIPO), 1),
-          },
+          data,
         };
       });
 
@@ -194,30 +353,62 @@ class DataTransferController {
       const docsFromFile = new Set();
       const idsFromFile = new Set();
 
+      // Assign new IDs from sequence for rows that don't have one
+      const rowsWithoutId = parsedRows.filter((r) => r.data.terc_id === null);
+      if (rowsWithoutId.length > 0) {
+        const query = `
+          SELECT SANAYA.SQ_TERCEROS.NEXTVAL AS id
+          FROM DUAL
+          CONNECT BY LEVEL <= :count
+        `;
+        const nextIds = await sequelize.query(query, {
+          replacements: { count: rowsWithoutId.length },
+          type: QueryTypes.SELECT,
+        });
+
+        rowsWithoutId.forEach((row, index) => {
+          row.data.terc_id = getGeneratedId(nextIds[index]);
+
+          if (!Number.isFinite(row.data.terc_id)) {
+            row.invalid = true;
+            failed.push({
+              row: row.excelRow,
+              reason: "No se pudo generar TERC_ID desde la secuencia",
+            });
+          }
+        });
+      }
+
       for (const row of parsedRows) {
         const { excelRow, data } = row;
+
         if (!Number.isFinite(data.terc_id)) {
-          failed.push({ row: excelRow, reason: "TERC_ID inválido o faltante" });
-          row.invalid = true;
-          continue;
-        }
-
-        if (!data.terc_nro_doc) {
-          failed.push({ row: excelRow, reason: "TERC_NRO_DOC es obligatorio" });
-          row.invalid = true;
-          continue;
-        }
-
-        if (docsFromFile.has(data.terc_nro_doc)) {
           failed.push({
             row: excelRow,
-            reason: "TERC_NRO_DOC duplicado dentro del archivo",
+            reason: "TERC_ID inválido. Debe ser numérico o estar vacío",
           });
           row.invalid = true;
           continue;
         }
 
-        if (idsFromFile.has(String(data.terc_id))) {
+        // Validations for rows that have terc_nro_doc
+        if (data.terc_nro_doc && data.terc_nro_doc.startsWith("TEMP-")) {
+          // Skip checks for temp doc numbers
+        } else if (data.terc_nro_doc) {
+          if (docsFromFile.has(data.terc_nro_doc)) {
+            failed.push({
+              row: excelRow,
+              reason: "TERC_NRO_DOC duplicado dentro del archivo",
+            });
+            row.invalid = true;
+            continue;
+          }
+          docsFromFile.add(data.terc_nro_doc);
+        }
+
+        // Validations for rows that have terc_id
+        const idStr = String(data.terc_id);
+        if (idsFromFile.has(idStr)) {
           failed.push({
             row: excelRow,
             reason: "TERC_ID duplicado dentro del archivo",
@@ -225,26 +416,26 @@ class DataTransferController {
           row.invalid = true;
           continue;
         }
-
-        docsFromFile.add(data.terc_nro_doc);
-        idsFromFile.add(String(data.terc_id));
+        idsFromFile.add(idStr);
       }
 
-      const existingByDoc = docsFromFile.size
-        ? await models.Tercero.findAll({
-            where: { terc_nro_doc: [...docsFromFile] },
-            attributes: ["terc_nro_doc"],
-            raw: true,
-          })
-        : [];
+      const existingByDoc =
+        docsFromFile.size > 0
+          ? await models.Tercero.findAll({
+              where: { terc_nro_doc: [...docsFromFile] },
+              attributes: ["terc_nro_doc"],
+              raw: true,
+            })
+          : [];
 
-      const existingById = idsFromFile.size
-        ? await models.Tercero.findAll({
-            where: { terc_id: [...idsFromFile] },
-            attributes: ["terc_id"],
-            raw: true,
-          })
-        : [];
+      const existingById =
+        idsFromFile.size > 0
+          ? await models.Tercero.findAll({
+              where: { terc_id: [...idsFromFile] },
+              attributes: ["terc_id"],
+              raw: true,
+            })
+          : [];
 
       const docsInDb = new Set(existingByDoc.map((item) => item.terc_nro_doc));
       const idsInDb = new Set(existingById.map((item) => String(item.terc_id)));
@@ -254,7 +445,12 @@ class DataTransferController {
         if (row.invalid) continue;
 
         const { excelRow, data } = row;
-        if (docsInDb.has(data.terc_nro_doc)) {
+
+        if (
+          data.terc_nro_doc &&
+          !data.terc_nro_doc.startsWith("TEMP-") &&
+          docsInDb.has(data.terc_nro_doc)
+        ) {
           failed.push({
             row: excelRow,
             reason: "TERC_NRO_DOC ya existe en base de datos",
@@ -273,19 +469,18 @@ class DataTransferController {
         try {
           await models.Tercero.create(data);
           inserted += 1;
-          docsInDb.add(data.terc_nro_doc);
           idsInDb.add(String(data.terc_id));
+          if (data.terc_nro_doc && !data.terc_nro_doc.startsWith("TEMP-")) {
+            docsInDb.add(data.terc_nro_doc);
+          }
         } catch (error) {
           failed.push({ row: excelRow, reason: error.message });
         }
       }
 
-      const statusCode = inserted > 0 ? 201 : 400;
-      return res.status(statusCode).json({
-        message: "Importación finalizada",
-        totalRows: rows.length,
+      return res.status(200).json({
+        message: `Importación completada. ${inserted} registros insertados.`,
         inserted,
-        failedCount: failed.length,
         failed,
       });
     } catch (error) {

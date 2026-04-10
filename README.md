@@ -1,6 +1,6 @@
-# Sistema de Gestión de Tienda Informática
+# Sistema de Gestión de Universidad
 
-Sistema completo de gestión para una tienda informática con backend Node.js/Express/Sequelize y frontend React/Vite/TailwindCSS 4.
+Sistema completo de gestión para una universidad con backend Node.js/Express/Sequelize y frontend React/Vite/TailwindCSS 4.
 
 ## 📋 Características
 
@@ -307,4 +307,4 @@ Las contribuciones son bienvenidas. Por favor, abre un issue primero para discut
 
 ---
 
-**Desarrollado con ❤️ para la gestión eficiente de tiendas informáticas**
+**Desarrollado con ❤️ para la gestión eficiente de Universidad**

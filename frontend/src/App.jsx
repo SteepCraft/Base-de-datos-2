@@ -8,6 +8,7 @@ import Asignaturas from "./pages/Asignaturas";
 import Auditorias from "./pages/Auditorias";
 import Cursos from "./pages/Cursos";
 import Dashboard from "./pages/Dashboard";
+import DataTransfer from "./pages/DataTransfer";
 import DetallePensums from "./pages/DetallePensums";
 import Historias from "./pages/Historias";
 import Login from "./pages/Login";
@@ -43,6 +44,7 @@ function App() {
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path='data-transfer' element={<DataTransfer />} />
               <Route path='terceros' element={<Terceros />} />
               <Route path='asignaturas' element={<Asignaturas />} />
               <Route path='programas' element={<Programas />} />

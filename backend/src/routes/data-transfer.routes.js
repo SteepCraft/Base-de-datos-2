@@ -11,9 +11,9 @@ const upload = multer({
 
 router.get("/export/:entity", DataTransferController.exportEntity);
 router.post(
-  "/import/terceros",
+  "/import/:entity",
   upload.single("file"),
-  DataTransferController.importTerceros
+  DataTransferController.importEntity
 );
 
 export default router;

@@ -40,6 +40,31 @@ const buildWhereFromQuery = (pkFields, query) => {
   return { where };
 };
 
+const ENTITY_DEPENDENCIES = {
+  terceros: [
+    {
+      model: "Prematricula",
+      foreignKey: "terc_id",
+      message: "El tercero está en una prematricula.",
+    },
+    {
+      model: "TercPensum",
+      foreignKey: "terc_id",
+      message: "El tercero está en un pensum.",
+    },
+    {
+      model: "Historia",
+      foreignKey: "terc_id",
+      message: "El tercero tiene historial académico.",
+    },
+    {
+      model: "Curso",
+      foreignKey: "terc_id",
+      message: "El tercero es un estudiante en un curso.",
+    },
+  ],
+};
+
 class SanayaController {
   static async nextAsignaturaId(_req, res) {
     try {
@@ -161,6 +186,12 @@ class SanayaController {
       const row = await modelConfig.model.create(req.body);
       return res.status(201).json(row);
     } catch (error) {
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(409).json({
+          error: "Conflicto: Ya existe un registro con esa llave primaria.",
+          fields: error.fields,
+        });
+      }
       return res.status(400).json({ error: error.message });
     }
   }
@@ -218,50 +249,100 @@ class SanayaController {
   }
 
   static async deleteById(req, res) {
+    const { entity: entityName, id } = req.params;
+    const modelConfig = getModel(entityName);
+
+    if (!modelConfig || !modelConfig.model) {
+      return res.status(404).json({ error: "Entidad no encontrada" });
+    }
+
+    const { entity, model } = modelConfig;
+    const transaction = await sequelize.transaction();
+
     try {
-      const modelConfig = getModel(req.params.entity);
-      if (!modelConfig || !modelConfig.model) {
-        return res.status(404).json({ error: "Entidad no soportada" });
+      const dependencies = ENTITY_DEPENDENCIES[entityName];
+      if (dependencies) {
+        for (const dep of dependencies) {
+          const depModel = models[dep.model];
+          if (depModel) {
+            await depModel.destroy({
+              where: { [dep.foreignKey]: id },
+              transaction,
+            });
+          }
+        }
       }
 
-      const { entity, model } = modelConfig;
-      if (entity.pk.length !== 1) {
-        return res.status(400).json({
-          error:
-            "Esta entidad usa llave compuesta. Usa query params con las llaves primarias.",
-          pk: entity.pk,
+      const pkName = entity.pk[0];
+      const result = await model.destroy({
+        where: { [pkName]: id },
+        transaction,
+      });
+
+      if (result === 0) {
+        await transaction.rollback();
+        return res.status(404).json({
+          error: `Registro no encontrado en ${entityName} con ID ${id}`,
         });
       }
 
-      const deleted = await model.destroy({
-        where: { [entity.pk[0]]: req.params.id },
-      });
-      if (!deleted)
-        return res.status(404).json({ error: "Registro no encontrado" });
-
-      return res.json({ message: "Registro eliminado" });
+      await transaction.commit();
+      return res.status(204).send();
     } catch (error) {
+      await transaction.rollback();
       return res.status(500).json({ error: error.message });
     }
   }
 
   static async deleteByPkQuery(req, res) {
+    const { entity: entityName } = req.params;
+    const modelConfig = getModel(entityName);
+
+    if (!modelConfig || !modelConfig.model) {
+      return res.status(404).json({ error: "Entidad no encontrada" });
+    }
+
+    const { model } = modelConfig;
+
     try {
-      const modelConfig = getModel(req.params.entity);
-      if (!modelConfig || !modelConfig.model) {
-        return res.status(404).json({ error: "Entidad no soportada" });
+      const result = await model.destroy({ where: req.query });
+
+      if (result === 0) {
+        return res.status(404).json({
+          error: `Registro no encontrado en ${entityName} con query`,
+        });
       }
 
-      const { entity, model } = modelConfig;
-      const parsed = buildWhereFromQuery(entity.pk, req.query);
-      if (parsed.error)
-        return res.status(400).json({ error: parsed.error, pk: entity.pk });
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
 
-      const deleted = await model.destroy({ where: parsed.where });
-      if (!deleted)
-        return res.status(404).json({ error: "Registro no encontrado" });
+  static async checkDependencies(req, res) {
+    const { entity: entityName, id } = req.params;
+    const dependencies = ENTITY_DEPENDENCIES[entityName];
 
-      return res.json({ message: "Registro eliminado" });
+    if (!dependencies) {
+      return res.json({ warnings: [] });
+    }
+
+    const warnings = [];
+    try {
+      for (const dep of dependencies) {
+        const depModel = models[dep.model];
+        if (depModel) {
+          const count = await depModel.count({
+            where: { [dep.foreignKey]: id },
+          });
+          if (count > 0) {
+            warnings.push(
+              `Hay ${count} registro(s) en ${dep.model} que dependen de este registro. ${dep.message}`
+            );
+          }
+        }
+      }
+      return res.json({ warnings });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

@@ -18,6 +18,7 @@ router.post("/:entity", SanayaController.create);
 router.put("/:entity/id/:id", SanayaController.updateById);
 router.put("/:entity/one", SanayaController.updateByPkQuery);
 
+router.get("/:entity/id/:id/dependencies", SanayaController.checkDependencies);
 router.delete("/:entity/id/:id", SanayaController.deleteById);
 router.delete("/:entity/one", SanayaController.deleteByPkQuery);
 

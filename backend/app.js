@@ -13,6 +13,8 @@ import sanayaRoutes from "./src/routes/sanaya.routes.js";
 console.info("✅ Configuración completa cargada correctamente");
 
 const app = express();
+const AUTH_MODE = (process.env.AUTH_MODE || "hybrid").toLowerCase();
+const envAuthOnly = AUTH_MODE === "env";
 
 app.use(cookieParser());
 
@@ -27,6 +29,11 @@ const corsWhitelist = (process.env.FRONTEND_URL || "")
  * - Verifica mapeo de modelos sin alterar el esquema.
  */
 (async () => {
+  if (envAuthOnly) {
+    console.warn("⚠️ AUTH_MODE=env: se omite inicialización de base de datos");
+    return;
+  }
+
   try {
     console.log("ℹ️ Asociaciones cargadas desde models/index.js");
 
@@ -98,7 +105,7 @@ const apiLimiter = rateLimit({
 });
 app.use(apiLimiter);
 app.use("/api/auth", authRoutes);
-app.use("/api/sanaya", authenticate, dataTransferRoutes);
+app.use("/api/data", authenticate, dataTransferRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

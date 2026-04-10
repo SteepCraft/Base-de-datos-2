@@ -1,18 +1,18 @@
-import PropTypes from "prop-types";
 import { useState } from "react";
 import {
-  FiHome,
-  FiUsers,
   FiBookOpen,
-  FiGrid,
-  FiLayers,
-  FiClipboard,
-  FiList,
-  FiGitMerge,
   FiCheckSquare,
-  FiShield,
+  FiClipboard,
+  FiDownload,
+  FiGitMerge,
+  FiGrid,
+  FiHome,
+  FiLayers,
+  FiList,
   FiLogOut,
   FiMenu,
+  FiShield,
+  FiUsers,
   FiX,
 } from "react-icons/fi";
 import { Link, Outlet, useLocation } from "react-router-dom";
@@ -36,6 +36,11 @@ const Layout = () => {
     { name: "Terc Pensums", href: "/terc-pensums", icon: FiCheckSquare },
     { name: "Prematriculas", href: "/prematriculas", icon: FiCheckSquare },
     { name: "Auditorias", href: "/auditorias", icon: FiShield },
+    {
+      name: "Importar/Exportar",
+      href: "/data-transfer",
+      icon: FiDownload,
+    },
   ];
 
   const isActive = (path) => {
@@ -56,6 +61,10 @@ const Layout = () => {
             sidebarOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => e.key === "Enter" && setSidebarOpen(false)}
+          role='button'
+          tabIndex={0}
+          aria-label='Cerrar menú'
         />
         <div
           className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white transition-transform transform ${
@@ -63,7 +72,9 @@ const Layout = () => {
           }`}
         >
           <div className='flex items-center justify-between h-16 px-4 border-b'>
-            <span className='text-xl font-bold text-blue-600'>Tienda IT</span>
+            <span className='text-xl font-bold text-blue-600'>
+              Uniremington
+            </span>
             <button
               onClick={() => setSidebarOpen(false)}
               className='p-2 rounded-md hover:bg-gray-100'
@@ -98,7 +109,9 @@ const Layout = () => {
       <div className='hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col'>
         <div className='flex flex-col flex-grow overflow-y-auto bg-white border-r border-gray-200'>
           <div className='flex items-center flex-shrink-0 h-16 px-4 border-b'>
-            <span className='text-xl font-bold text-blue-600'>Tienda IT</span>
+            <span className='text-xl font-bold text-blue-600'>
+              Uniremington
+            </span>
           </div>
           <nav className='flex-1 px-2 py-4 space-y-1'>
             {navigation.map((item) => {
@@ -150,7 +163,9 @@ const Layout = () => {
             >
               <FiMenu className='w-6 h-6' />
             </button>
-            <span className='text-lg font-bold text-blue-600'>Tienda IT</span>
+            <span className='text-lg font-bold text-blue-600'>
+              Uniremington
+            </span>
             <button
               onClick={logout}
               className='p-2 text-gray-400 rounded-lg hover:text-gray-600 hover:bg-gray-100'
@@ -167,10 +182,6 @@ const Layout = () => {
       </div>
     </div>
   );
-};
-
-Layout.propTypes = {
-  children: PropTypes.node,
 };
 
 export default Layout;

@@ -27,6 +27,9 @@ export const authenticate = (req, res, next) => {
       id: decoded.id,
       email: decoded.email,
       rol: decoded.rol,
+      nombres: decoded.nombres,
+      apellidos: decoded.apellidos,
+      source: decoded.source,
     };
     return next();
   } catch (_error) {
