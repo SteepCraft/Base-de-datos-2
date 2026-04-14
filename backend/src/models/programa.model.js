@@ -20,7 +20,7 @@ const Programa = sequelize.define(
     tableName: "PROGRAMAS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Programa;

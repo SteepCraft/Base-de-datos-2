@@ -30,7 +30,7 @@ const Asignatura = sequelize.define(
     tableName: "ASIGNATURAS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Asignatura;

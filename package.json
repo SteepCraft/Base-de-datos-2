@@ -1,28 +1,28 @@
 {
   "name": "bd2",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev:backend": "pnpm --filter backend dev",
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:all": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
-    "build:frontend": "pnpm --filter frontend build",
-    "lint": "pnpm -r run lint",
-    "lint:fix": "pnpm -r run lint:fix",
-    "format": "pnpm -r run format",
-    "code:check": "pnpm -r run code:check",
-    "code:fix": "pnpm -r run code:fix"
+    "dev": "turbo run dev",
+    "dev:all": "turbo run dev",
+    "dev:backend": "turbo run dev --filter=backend",
+    "dev:frontend": "turbo run dev --filter=frontend",
+    "build": "turbo run build --filter=frontend",
+    "build:frontend": "turbo run build --filter=frontend",
+    "lint": "turbo run lint",
+    "lint:check": "turbo run lint:check",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "code:check": "turbo run code:check",
+    "code:fix": "turbo run code:fix"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.36.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0",
-    "globals": "^17.4.0",
-    "prettier": "^3.8.1",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "turbo": "^2.6.1",
     "typescript": "^6.0.2"
-  }
+  },
+  "packageManager": "pnpm@10.33.0"
 }

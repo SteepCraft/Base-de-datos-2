@@ -25,7 +25,7 @@ const Pensum = sequelize.define(
     tableName: "PENSUMS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Pensum;

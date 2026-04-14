@@ -26,7 +26,7 @@ const TercPensum = sequelize.define(
     tableName: "TERC_PENSUMS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default TercPensum;

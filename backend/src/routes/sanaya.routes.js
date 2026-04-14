@@ -4,11 +4,10 @@ import SanayaController from "../controllers/sanaya.controller.js";
 const router = Router();
 
 router.get("/asignaturas/next-id", SanayaController.nextAsignaturaId);
-router.post(
-  "/terc-pensums/execute-sp",
-  SanayaController.executeSpIngTercPensuns
-);
+router.post("/terc-pensums/execute-sp", SanayaController.executeSpIngTercPensuns);
 
+router.get("/:entity/options", SanayaController.getOptions);
+router.get("/:entity/search", SanayaController.search);
 router.get("/:entity", SanayaController.list);
 router.get("/:entity/id/:id", SanayaController.getById);
 router.get("/:entity/one", SanayaController.getOneByPkQuery);

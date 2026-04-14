@@ -43,7 +43,7 @@ const Auditoria = sequelize.define(
     tableName: "AUDITORIAS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Auditoria;

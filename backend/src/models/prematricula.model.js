@@ -27,7 +27,7 @@ const Prematricula = sequelize.define(
     tableName: "PREMATRICULAS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Prematricula;

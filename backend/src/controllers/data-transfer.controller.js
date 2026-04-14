@@ -125,7 +125,7 @@ const buildHistoriaReport = () =>
       LEFT JOIN SANAYA.ASIGNATURAS a ON a.ASIG_ID = c.ASIG_ID
       ORDER BY h.HIST_PERIODO, h.TERC_ID, h.CURS_ID
     `,
-    { type: QueryTypes.SELECT }
+    { type: QueryTypes.SELECT },
   );
 
 const buildAuditoriaReport = () =>
@@ -141,7 +141,7 @@ const buildAuditoriaReport = () =>
       FROM SANAYA.AUDITORIAS
       ORDER BY AUDI_FECHA DESC
     `,
-    { type: QueryTypes.SELECT }
+    { type: QueryTypes.SELECT },
   );
 
 const buildGenericReport = (modelName) => {
@@ -188,9 +188,7 @@ class DataTransferController {
   static async importGenericEntity(req, res, entity, config) {
     try {
       if (!req.file?.buffer) {
-        return res
-          .status(400)
-          .json({ error: "Archivo requerido en campo 'file'" });
+        return res.status(400).json({ error: "Archivo requerido en campo 'file'" });
       }
 
       const model = models[config.model];
@@ -202,9 +200,7 @@ class DataTransferController {
 
       const rows = parseRowsFromFile(req.file);
       if (!rows.length) {
-        return res
-          .status(400)
-          .json({ error: "El archivo no contiene filas para importar" });
+        return res.status(400).json({ error: "El archivo no contiene filas para importar" });
       }
 
       const fieldMap = getModelFieldMap(model);
@@ -278,10 +274,7 @@ class DataTransferController {
       if (format === "csv") {
         const csvBuffer = XLSX.write(book, { type: "buffer", bookType: "csv" });
         res.setHeader("Content-Type", "text/csv; charset=utf-8");
-        res.setHeader(
-          "Content-Disposition",
-          `attachment; filename="${filename}"`
-        );
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
         return res.send(csvBuffer);
       }
 
@@ -292,12 +285,9 @@ class DataTransferController {
       });
       res.setHeader(
         "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       );
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${filename}"`
-      );
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       return res.send(xlsxBuffer);
     } catch (error) {
       return res.status(500).json({ error: error.message });
@@ -307,16 +297,12 @@ class DataTransferController {
   static async importTerceros(req, res) {
     try {
       if (!req.file?.buffer) {
-        return res
-          .status(400)
-          .json({ error: "Archivo requerido en campo 'file'" });
+        return res.status(400).json({ error: "Archivo requerido en campo 'file'" });
       }
 
       const rows = parseRowsFromFile(req.file);
       if (!rows.length) {
-        return res
-          .status(400)
-          .json({ error: "El archivo no contiene filas para importar" });
+        return res.status(400).json({ error: "El archivo no contiene filas para importar" });
       }
 
       const parsedRows = rows.map((rawRow, index) => {

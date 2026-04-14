@@ -1,0 +1,276 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["import"],
+  "categories": {
+    "correctness": "off"
+  },
+  "env": {
+    "es2024": true,
+    "browser": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/.docusaurus/**",
+    "**/logs/**",
+    "**/*.log",
+    "**/.env*",
+    "**/.astro/**"
+  ],
+
+  "rules": {
+    // ── ESLint recommended (js.configs.recommended equivalent) ──────────────
+    "constructor-super": "error",
+    "for-direction": "error",
+    "no-async-promise-executor": "error",
+    "no-case-declarations": "error",
+    "no-class-assign": "error",
+    "no-compare-neg-zero": "error",
+    "no-cond-assign": "error",
+    "no-const-assign": "error",
+    "no-constant-binary-expression": "error",
+    "no-constant-condition": "error",
+    "no-control-regex": "error",
+    "no-delete-var": "error",
+    "no-dupe-class-members": "error",
+    "no-dupe-else-if": "error",
+    "no-dupe-keys": "error",
+    "no-duplicate-case": "error",
+    "no-empty": "error",
+    "no-empty-character-class": "error",
+    "no-empty-pattern": "error",
+    "no-empty-static-block": "error",
+    "no-ex-assign": "error",
+    "no-extra-boolean-cast": "error",
+    "no-fallthrough": "error",
+    "no-func-assign": "error",
+    "no-global-assign": "error",
+    "no-import-assign": "error",
+    "no-invalid-regexp": "error",
+    "no-irregular-whitespace": "error",
+    "no-loss-of-precision": "error",
+    "no-misleading-character-class": "error",
+    "no-new-native-nonconstructor": "error",
+    "no-nonoctal-decimal-escape": "error",
+    "no-obj-calls": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-regex-spaces": "error",
+    "no-self-assign": "error",
+    "no-setter-return": "error",
+    "no-shadow-restricted-names": "error",
+    "no-sparse-arrays": "error",
+    "no-this-before-super": "error",
+    "no-unassigned-vars": "error",
+    "no-unsafe-finally": "error",
+    "no-unsafe-negation": "error",
+    "no-unsafe-optional-chaining": "error",
+    "no-unused-labels": "error",
+    "no-unused-private-class-members": "error",
+    "no-useless-backreference": "error",
+    "no-useless-catch": "error",
+    "no-useless-escape": "error",
+    "no-with": "error",
+    "preserve-caught-error": "error",
+    "require-yield": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error",
+
+    // ── Custom rules ─────────────────────────────────────────────────────────
+    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "no-debugger": "warn",
+    // no-unused-vars disabled globally — TypeScript override below handles it
+    "no-unused-vars": "off",
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
+    // Sort import members: { A, B, C } within a single import statement
+    // NOTE: import/order (with pathGroups) is not available in oxlint
+    "sort-imports": [
+      "error",
+      {
+        "ignoreCase": true,
+        "ignoreDeclarationSort": true,
+        "ignoreMemberSort": false
+      }
+    ],
+
+    // ── Import plugin rules ──────────────────────────────────────────────────
+    "import/no-duplicates": "error",
+    "import/first": "error",
+    "import/no-absolute-path": "error",
+    // import/no-cycle is available but disabled: builds full dep graph → OOM on 8 GB RAM
+    "import/no-cycle": "off"
+  },
+
+  "overrides": [
+    // ── TypeScript files ─────────────────────────────────────────────────────
+    {
+      "files": ["**/*.{ts,tsx,d.ts}"],
+      "plugins": ["typescript"],
+      "rules": {
+        // From @typescript-eslint/recommended
+        "typescript/ban-ts-comment": "error",
+        "no-array-constructor": "error",
+        "typescript/no-duplicate-enum-values": "error",
+        "typescript/no-empty-object-type": "error",
+        "typescript/no-explicit-any": "warn",
+        "typescript/no-extra-non-null-assertion": "error",
+        "typescript/no-misused-new": "error",
+        "typescript/no-namespace": "error",
+        "typescript/no-non-null-asserted-optional-chain": "error",
+        "typescript/no-require-imports": "error",
+        "typescript/no-this-alias": "error",
+        "typescript/no-unnecessary-type-constraint": "error",
+        "typescript/no-unsafe-declaration-merging": "error",
+        "typescript/no-unsafe-function-type": "error",
+        "typescript/no-wrapper-object-types": "error",
+        "typescript/prefer-as-const": "error",
+        "typescript/prefer-namespace-keyword": "error",
+        "typescript/triple-slash-reference": "error",
+        "no-unused-expressions": "error",
+        "typescript/explicit-module-boundary-types": "off",
+
+        // ── Type-aware rules (require oxlint-tsgolint) ───────────────────────
+        // warn until existing floating promises are fixed, then upgrade to error
+        "typescript/no-floating-promises": "warn",
+        // These are low-count real bugs — error from the start
+        "typescript/no-redundant-type-constituents": "error",
+        "typescript/no-base-to-string": "error",
+        "typescript/await-thenable": "error",
+        "typescript/restrict-template-expressions": [
+          "error",
+          { "allowNumber": true, "allowBoolean": true, "allowNullish": true }
+        ],
+        "typescript/no-for-in-array": "error",
+        "typescript/no-implied-eval": "error",
+        "typescript/no-misused-spread": "error",
+        "typescript/require-array-sort-compare": "error",
+        "typescript/unbound-method": "error",
+
+        // ── TS best practices ────────────────────────────────────────────────
+        // Enforce import type for type-only imports everywhere
+        "typescript/consistent-type-imports": [
+          "error",
+          { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
+        ],
+        // Prevent `import type { Foo } from 'foo'` when foo has runtime side effects
+        "typescript/no-import-type-side-effects": "error",
+        // Enforce unknown in catch blocks instead of any
+        "typescript/use-unknown-in-catch-callback-variable": "warn",
+        // Replaces @typescript-eslint/no-unused-vars
+        "typescript/no-deprecated": "error",
+        "no-unused-vars": [
+          "warn",
+          {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
+          }
+        ],
+        // Named imports/exports validation
+        "import/named": "error"
+      }
+    },
+
+    // ── React + JSX A11y: for React apps and UI package ──────────────────────
+    {
+      "files": ["apps/**/*.{tsx,jsx}", "packages/ui/src/**/*.{tsx,jsx}"],
+      "plugins": ["react", "jsx-a11y"],
+      "rules": {
+        // React recommended rules
+        "react/jsx-key": "error",
+        "react/jsx-no-comment-textnodes": "error",
+        "react/jsx-no-duplicate-props": "error",
+        "react/jsx-no-target-blank": ["error", { "allowReferrer": true }],
+        "react/jsx-no-undef": "error",
+        "react/no-children-prop": "error",
+        "react/no-danger-with-children": "error",
+        "react/no-direct-mutation-state": "error",
+        "react/no-find-dom-node": "error",
+        "react/no-is-mounted": "error",
+        "react/no-render-return-value": "error",
+        "react/no-string-refs": "error",
+        "react/no-unescaped-entities": "error",
+        "react/no-unknown-property": "error",
+        "react/require-render-return": "error",
+        // React 17+ JSX transform — no need to import React in scope
+        "react/react-in-jsx-scope": "off",
+        // Custom overrides
+        "react/jsx-no-useless-fragment": "error",
+        // React Hooks
+        "react/rules-of-hooks": "error",
+        "react/exhaustive-deps": "warn",
+
+        // JSX A11y recommended rules
+        "jsx-a11y/alt-text": "error",
+        "jsx-a11y/anchor-has-content": "error",
+        "jsx-a11y/anchor-is-valid": ["warn", { "components": ["Link"], "specialLink": ["to"] }],
+        "jsx-a11y/aria-activedescendant-has-tabindex": "error",
+        "jsx-a11y/aria-props": "error",
+        "jsx-a11y/aria-proptypes": "error",
+        "jsx-a11y/aria-role": "error",
+        "jsx-a11y/aria-unsupported-elements": "error",
+        "jsx-a11y/click-events-have-key-events": "warn",
+        "jsx-a11y/heading-has-content": "error",
+        "jsx-a11y/html-has-lang": "error",
+        "jsx-a11y/iframe-has-title": "error",
+        "jsx-a11y/img-redundant-alt": "error",
+        "jsx-a11y/label-has-associated-control": ["warn", { "assert": "either" }],
+        "jsx-a11y/media-has-caption": "error",
+        "jsx-a11y/mouse-events-have-key-events": "error",
+        "jsx-a11y/no-access-key": "error",
+        "jsx-a11y/no-autofocus": "error",
+        "jsx-a11y/no-distracting-elements": "error",
+        "jsx-a11y/no-noninteractive-tabindex": "error",
+        "jsx-a11y/no-redundant-roles": "error",
+        "jsx-a11y/no-static-element-interactions": "warn",
+        "jsx-a11y/role-has-required-aria-props": "error",
+        "jsx-a11y/role-supports-aria-props": "error",
+        "jsx-a11y/scope": "error",
+        "jsx-a11y/tabindex-no-positive": "error"
+      }
+    },
+
+    // ── Test files: relax rules ───────────────────────────────────────────────
+    {
+      "files": [
+        "**/*.test.{js,ts,tsx}",
+        "**/*.spec.{js,ts,tsx}",
+        "**/__tests__/**/*.{js,ts,tsx}",
+        "tests/**/*.{js,ts,tsx}"
+      ],
+      "rules": {
+        "typescript/no-explicit-any": "off",
+        "typescript/consistent-type-imports": "off",
+        "typescript/use-unknown-in-catch-callback-variable": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/unbound-method": "off"
+      },
+      "globals": {
+        "vi": "readonly"
+      },
+      "plugins": ["typescript"],
+      "env": {
+        "jest": true
+      }
+    },
+
+    // ── Config files: relax import rules ─────────────────────────────────────
+    {
+      "files": [
+        "*.config.{js,mjs,ts}",
+        "**/vite.config.*",
+        "**/tailwind.config.*",
+        "**/eslint.config.*",
+        "**/playwright.config.*",
+        "**/astro.config.*"
+      ],
+      "rules": {
+        "import/named": "off",
+        "typescript/consistent-type-imports": "off"
+      }
+    }
+  ]
+}

@@ -30,7 +30,7 @@ const Curso = sequelize.define(
     tableName: "CURSOS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Curso;

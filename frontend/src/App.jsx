@@ -1,22 +1,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import Asignaturas from "./pages/Asignaturas";
-import Auditorias from "./pages/Auditorias";
-import Cursos from "./pages/Cursos";
+import AcademicoWorkspace from "./pages/AcademicoWorkspace";
+import CurriculoWorkspace from "./pages/CurriculoWorkspace";
 import Dashboard from "./pages/Dashboard";
 import DataTransfer from "./pages/DataTransfer";
-import DetallePensums from "./pages/DetallePensums";
-import Historias from "./pages/Historias";
 import Login from "./pages/Login";
-import Pensums from "./pages/Pensums";
-import Prematriculas from "./pages/Prematriculas";
-import Programas from "./pages/Programas";
+import SeguimientoWorkspace from "./pages/SeguimientoWorkspace";
 import Terceros from "./pages/Terceros";
-import TercPensums from "./pages/TercPensums";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,9 +28,9 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path='/login' element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route
-              path='/'
+              path="/"
               element={
                 <ProtectedRoute>
                   <Layout />
@@ -44,19 +38,43 @@ function App() {
               }
             >
               <Route index element={<Dashboard />} />
-              <Route path='data-transfer' element={<DataTransfer />} />
-              <Route path='terceros' element={<Terceros />} />
-              <Route path='asignaturas' element={<Asignaturas />} />
-              <Route path='programas' element={<Programas />} />
-              <Route path='cursos' element={<Cursos />} />
-              <Route path='pensums' element={<Pensums />} />
-              <Route path='historias' element={<Historias />} />
-              <Route path='detalle-pensums' element={<DetallePensums />} />
-              <Route path='terc-pensums' element={<TercPensums />} />
-              <Route path='prematriculas' element={<Prematriculas />} />
-              <Route path='auditorias' element={<Auditorias />} />
+              <Route path="personas" element={<Terceros />} />
+              <Route path="academico" element={<AcademicoWorkspace />} />
+              <Route path="curriculo" element={<CurriculoWorkspace />} />
+              <Route path="seguimiento" element={<SeguimientoWorkspace />} />
+              <Route path="data-transfer" element={<DataTransfer />} />
+
+              {/* Legacy URLs -> redirects to grouped modules */}
+              <Route path="terceros" element={<Navigate to="/personas" replace />} />
+              <Route
+                path="asignaturas"
+                element={<Navigate to="/academico?tab=catalogo" replace />}
+              />
+              <Route path="programas" element={<Navigate to="/academico?tab=catalogo" replace />} />
+              <Route path="cursos" element={<Navigate to="/academico?tab=oferta" replace />} />
+              <Route path="pensums" element={<Navigate to="/curriculo?tab=planes" replace />} />
+              <Route
+                path="detalle-pensums"
+                element={<Navigate to="/curriculo?tab=planes" replace />}
+              />
+              <Route
+                path="terc-pensums"
+                element={<Navigate to="/curriculo?tab=terc-pensums" replace />}
+              />
+              <Route
+                path="prematriculas"
+                element={<Navigate to="/seguimiento?tab=proceso" replace />}
+              />
+              <Route
+                path="historias"
+                element={<Navigate to="/seguimiento?tab=proceso" replace />}
+              />
+              <Route
+                path="auditorias"
+                element={<Navigate to="/seguimiento?tab=auditorias" replace />}
+              />
             </Route>
-            <Route path='*' element={<Navigate to='/' replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

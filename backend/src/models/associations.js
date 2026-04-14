@@ -14,9 +14,7 @@ export default function applyAssociations(models) {
 
   // Helpers para no re-crear la misma asociación varias veces
   const hasAssoc = (model, alias) =>
-    model &&
-    model.associations &&
-    Object.prototype.hasOwnProperty.call(model.associations, alias);
+    model && model.associations && Object.prototype.hasOwnProperty.call(model.associations, alias);
 
   const addBelongsTo = (source, target, opts) => {
     if (!source || !target || !opts?.as) return;

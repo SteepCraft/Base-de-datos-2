@@ -5,7 +5,7 @@ packages:
 minimumReleaseAge: 1440
 
 onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
+  - "@tailwindcss/oxide"
   - bcrypt
   - core-js
   - esbuild

@@ -3,6 +3,7 @@
 Esta guía explica cómo levantar una base de datos Oracle XE en Docker usando **docker-compose**, crear el usuario de trabajo (`sanaya`) y preparar el entorno para el proyecto.
 
 ## Requisitos previos
+
 - Tener instalado [Docker](https://docs.docker.com/get-docker/)
 - Tener instalado [Docker Compose](https://docs.docker.com/compose/)
 
@@ -52,6 +53,7 @@ Ejecuta el script de configuración automatizado:
 ```
 
 Este script:
+
 - ✅ Espera automáticamente a que Oracle esté listo
 - ✅ Crea el usuario `SANAYA` con todos los permisos necesarios
 - ✅ Copia y ejecuta el archivo `sanaya.sql` para crear todas las tablas
@@ -65,29 +67,32 @@ Este script:
 ### Conexión como `system` (administrador)
 
 1. Dentro del contenedor con SQLPlus:
+
 ```bash
 sudo docker exec -it oracle-xe sqlplus system/123@localhost/XEPDB1
 ```
 
 2. Desde tu máquina (si tienes SQLPlus instalado):
+
 ```bash
 sqlplus system/123@localhost:1521/XEPDB1
 ```
 
 3. Usando DBeaver, Oracle SQL Developer u otro cliente:
-- **Host:** localhost  
-- **Puerto:** 1521  
-- **Usuario:** system  
-- **Contraseña:** 123  
-- **Service:** XEPDB1  
+
+- **Host:** localhost
+- **Puerto:** 1521
+- **Usuario:** system
+- **Contraseña:** 123
+- **Service:** XEPDB1
 
 ### Conexión como `SANAYA` (usuario de trabajo)
 
-- **Host:** localhost  
-- **Puerto:** 1521  
-- **Usuario:** SANAYA  
-- **Contraseña:** 123  
-- **Service:** XEPDB1  
+- **Host:** localhost
+- **Puerto:** 1521
+- **Usuario:** SANAYA
+- **Contraseña:** 123
+- **Service:** XEPDB1
 
 ```bash
 sudo docker exec -it oracle-xe sqlplus SANAYA/123@localhost:1521/XEPDB1
@@ -130,21 +135,25 @@ Deberías ver las tablas: `CLIENTE`, `COMPRAS`, `DETALLE_COMPRA`, `DETALLE_VENTA
 ## 7. Comandos útiles
 
 ### Ver logs de Oracle
+
 ```bash
 sudo docker compose logs -f oracle-xe
 ```
 
 ### Reiniciar Oracle
+
 ```bash
 sudo docker compose restart oracle-xe
 ```
 
 ### Recrear el esquema (sin perder el contenedor)
+
 ```bash
 ./setup-user.sh
 ```
 
 ### Resetear completamente Oracle (⚠️ Borra todos los datos)
+
 ```bash
 sudo docker compose down -v
 sudo docker compose up -d
@@ -156,30 +165,40 @@ sudo docker compose up -d
 ## 8. Posibles problemas y soluciones
 
 ### ❌ Error `ORA-12541: TNS:no listener`
-👉 Oracle aún no está completamente listo. Solución:  
+
+👉 Oracle aún no está completamente listo. Solución:
+
 - Espera 1-2 minutos y vuelve a ejecutar `./setup-user.sh`
 - El script ahora espera automáticamente
 
 ### ❌ Error al ejecutar `setup-user.sh`
+
 👉 Verifica que el contenedor esté corriendo:
+
 ```bash
 sudo docker compose ps
 ```
 
 ### ❌ Conflicto de nombre de contenedor
-👉 Otro contenedor usa el nombre `oracle-xe`. Solución:  
+
+👉 Otro contenedor usa el nombre `oracle-xe`. Solución:
+
 ```bash
 sudo docker rm -f oracle-xe
 ```
 
 ### ❌ El script no tiene permisos de ejecución
+
 👉 Solución:
+
 ```bash
 chmod +x setup-user.sh
 ```
 
 ### ❌ Persisten errores aunque elimines el contenedor
-👉 Probablemente el volumen guardó datos antiguos. Solución:  
+
+👉 Probablemente el volumen guardó datos antiguos. Solución:
+
 ```bash
 sudo docker compose down -v
 sudo docker compose up -d

@@ -21,6 +21,29 @@ Sistema completo de gestión para una universidad con backend Node.js/Express/Se
 - Puerto 3000 para el backend
 - Puerto 5173 para el frontend (Vite dev server)
 
+### Monorepo (root)
+
+1. **Instalar dependencias del workspace**
+
+```bash
+pnpm install
+```
+
+2. **Levantar backend y frontend juntos**
+
+```bash
+pnpm dev
+# o alias compatible
+pnpm dev:all
+```
+
+3. **Levantar solo un paquete**
+
+```bash
+pnpm dev:backend
+pnpm dev:frontend
+```
+
 ### Backend
 
 1. **Configurar variables de entorno**
@@ -49,16 +72,14 @@ PORT=3000
 NODE_ENV=development
 ```
 
-2. **Instalar dependencias**
+2. **Iniciar el servidor**
 
 ```bash
+# desde la raiz del monorepo
+pnpm dev:backend
+
+# o dentro de backend/
 cd backend
-pnpm install
-```
-
-3. **Iniciar el servidor**
-
-```bash
 pnpm start
 # o para desarrollo con hot reload
 pnpm run dev
@@ -76,16 +97,14 @@ Crea un archivo `.env` en la carpeta `frontend/`:
 VITE_API_URL=http://localhost:3000/api
 ```
 
-2. **Instalar dependencias**
+2. **Iniciar el servidor de desarrollo**
 
 ```bash
+# desde la raiz del monorepo
+pnpm dev:frontend
+
+# o dentro de frontend/
 cd frontend
-pnpm install
-```
-
-3. **Iniciar el servidor de desarrollo**
-
-```bash
 pnpm dev
 ```
 
@@ -102,6 +121,7 @@ El frontend estará disponible en `http://localhost:5173`
 ### Dashboard
 
 El dashboard muestra:
+
 - Cantidad total de clientes, productos, proveedores y ventas
 - Productos con bajo stock (menos de 10 unidades)
 - Últimas 5 ventas realizadas
@@ -114,8 +134,9 @@ El dashboard muestra:
 - **Eliminar**: Click en el icono de basura → Confirmación
 
 **Campos**:
-- Nombres *
-- Apellidos *
+
+- Nombres \*
+- Apellidos \*
 - Dirección
 - Teléfono
 
@@ -127,12 +148,14 @@ El dashboard muestra:
 - **Eliminar**: Click en el icono de basura → Confirmación
 
 **Campos**:
-- Código * (solo al crear)
-- Descripción *
-- Precio *
+
+- Código \* (solo al crear)
+- Descripción \*
+- Precio \*
 - Stock (número de existencias)
 
 **Indicadores de stock**:
+
 - 🔴 Rojo: < 10 unidades (bajo)
 - 🟡 Amarillo: 10-49 unidades (medio)
 - 🟢 Verde: ≥ 50 unidades (alto)
@@ -145,12 +168,13 @@ El dashboard muestra:
 - **Eliminar**: Click en el icono de basura → Confirmación
 
 **Campos**:
-- ID * (solo al crear, máx 10 caracteres)
-- Nombres *
-- Apellidos *
-- Dirección *
-- Provincia *
-- Teléfono *
+
+- ID \* (solo al crear, máx 10 caracteres)
+- Nombres \*
+- Apellidos \*
+- Dirección \*
+- Provincia \*
+- Teléfono \*
 
 ### Gestión de Ventas
 
@@ -159,6 +183,7 @@ El dashboard muestra:
 - **Ver detalles**: Click en el icono de ojo → Modal con productos vendidos
 
 **Proceso de creación**:
+
 1. Ingresar código de venta
 2. Seleccionar cliente
 3. Agregar productos:
@@ -173,7 +198,7 @@ El dashboard muestra:
 ## 🏗️ Estructura del Proyecto
 
 ```
-bd1/
+bd2/
 ├── backend/
 │   ├── src/
 │   │   ├── auth/              # Autenticación y middleware
@@ -209,6 +234,7 @@ bd1/
 ## 🛠️ Tecnologías Utilizadas
 
 ### Backend
+
 - **Node.js** - Runtime de JavaScript
 - **Express** - Framework web
 - **Sequelize** - ORM para base de datos
@@ -218,6 +244,7 @@ bd1/
 - **dotenv** - Variables de entorno
 
 ### Frontend
+
 - **React 19** - Librería UI
 - **Vite** - Build tool y dev server
 - **TailwindCSS 4** - Framework CSS
@@ -237,11 +264,13 @@ bd1/
 ## 📝 API Endpoints
 
 ### Autenticación
+
 - `POST /api/auth/login` - Iniciar sesión
 - `POST /api/auth/logout` - Cerrar sesión
 - `GET /api/auth/me` - Obtener usuario actual
 
 ### Clientes
+
 - `GET /api/cliente` - Listar todos
 - `GET /api/cliente/:id` - Obtener uno
 - `POST /api/cliente` - Crear
@@ -249,6 +278,7 @@ bd1/
 - `DELETE /api/cliente/:id` - Eliminar
 
 ### Productos
+
 - `GET /api/producto` - Listar todos
 - `GET /api/producto/:id` - Obtener uno
 - `POST /api/producto` - Crear
@@ -256,6 +286,7 @@ bd1/
 - `DELETE /api/producto/:id` - Eliminar
 
 ### Proveedores
+
 - `GET /api/proveedor` - Listar todos
 - `GET /api/proveedor/:id` - Obtener uno
 - `POST /api/proveedor` - Crear
@@ -263,11 +294,13 @@ bd1/
 - `DELETE /api/proveedor/:id` - Eliminar
 
 ### Ventas
+
 - `GET /api/venta` - Listar todas
 - `GET /api/venta/:id` - Obtener una
 - `POST /api/venta` - Crear
 
 ### Detalles de Venta
+
 - `GET /api/detalle-venta` - Listar todos
 - `POST /api/detalle-venta` - Crear
 
@@ -284,15 +317,18 @@ bd1/
 ## 🐛 Solución de Problemas
 
 ### Error de conexión a la base de datos
+
 - Verifica que las credenciales en `.env` sean correctas
 - Asegúrate de que el servicio de base de datos esté corriendo
 - Verifica que el puerto esté abierto
 
 ### Error 401 en las peticiones
+
 - El token puede haber expirado, cierra sesión y vuelve a iniciar
 - Verifica que `JWT_SECRET` sea el mismo en desarrollo y producción
 
 ### Las vistas no cargan
+
 - Verifica que el backend esté corriendo en el puerto correcto
 - Revisa la consola del navegador para errores
 - Asegúrate de que `VITE_API_URL` apunte al backend correcto

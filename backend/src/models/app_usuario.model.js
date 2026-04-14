@@ -49,7 +49,7 @@ const AppUsuario = sequelize.define(
     tableName: "APP_USUARIOS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default AppUsuario;

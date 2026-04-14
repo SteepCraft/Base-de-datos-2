@@ -1,47 +1,46 @@
 import { useState } from "react";
 import {
-  FiBookOpen,
-  FiCheckSquare,
-  FiClipboard,
-  FiDownload,
-  FiGitMerge,
-  FiGrid,
+  FiArchive,
+  FiFileText,
   FiHome,
-  FiLayers,
-  FiList,
   FiLogOut,
+  FiMap,
   FiMenu,
-  FiShield,
+  FiTool,
   FiUsers,
   FiX,
 } from "react-icons/fi";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { cn } from "../lib/utils";
+import { Button } from "./ui/button";
+
+const NAVIGATION_GROUPS = [
+  {
+    group: "General",
+    items: [{ name: "Dashboard", href: "/", icon: FiHome }],
+  },
+  {
+    group: "Operacion Academica",
+    items: [
+      { name: "Personas", href: "/personas", icon: FiUsers },
+      { name: "Gestion Academica", href: "/academico", icon: FiMap },
+      { name: "Estructura Curricular", href: "/curriculo", icon: FiArchive },
+      { name: "Seguimiento", href: "/seguimiento", icon: FiFileText },
+    ],
+  },
+  {
+    group: "Herramientas",
+    items: [{ name: "Importar / Exportar", href: "/data-transfer", icon: FiTool }],
+  },
+];
 
 const Layout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navigation = [
-    { name: "Dashboard", href: "/", icon: FiHome },
-    { name: "Terceros", href: "/terceros", icon: FiUsers },
-    { name: "Asignaturas", href: "/asignaturas", icon: FiBookOpen },
-    { name: "Programas", href: "/programas", icon: FiGrid },
-    { name: "Cursos", href: "/cursos", icon: FiLayers },
-    { name: "Pensums", href: "/pensums", icon: FiClipboard },
-    { name: "Historias", href: "/historias", icon: FiList },
-    { name: "Detalle Pensums", href: "/detalle-pensums", icon: FiGitMerge },
-    { name: "Terc Pensums", href: "/terc-pensums", icon: FiCheckSquare },
-    { name: "Prematriculas", href: "/prematriculas", icon: FiCheckSquare },
-    { name: "Auditorias", href: "/auditorias", icon: FiShield },
-    {
-      name: "Importar/Exportar",
-      href: "/data-transfer",
-      icon: FiDownload,
-    },
-  ];
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isActive = (path) => {
     if (path === "/") {
@@ -50,133 +49,187 @@ const Layout = () => {
     return location.pathname.startsWith(path);
   };
 
-  return (
-    <div className='min-h-screen bg-gray-50'>
-      {/* Sidebar para móvil */}
-      <div
-        className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}
+  const filteredGroups = NAVIGATION_GROUPS;
+
+  const renderNavigationItem = (item, onClick) => {
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.name}
+        to={item.href}
+        onClick={onClick}
+        className={cn(
+          "flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+          isActive(item.href)
+            ? "bg-amber-50 text-amber-900 ring-1 ring-amber-200"
+            : "text-slate-700 hover:bg-slate-100",
+        )}
       >
+        <Icon className="mr-3 size-4 shrink-0" />
+        <span className="truncate">{item.name}</span>
+      </Link>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-transparent">
+      <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}>
         <div
-          className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ${
+          className={`fixed inset-0 bg-slate-900/60 transition-opacity ${
             sidebarOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => e.key === "Enter" && setSidebarOpen(false)}
-          role='button'
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              setSidebarOpen(false);
+            }
+          }}
+          role="button"
           tabIndex={0}
-          aria-label='Cerrar menú'
+          aria-label="Cerrar menu"
         />
-        <div
-          className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white transition-transform transform ${
+
+        <aside
+          className={`fixed inset-y-0 left-0 flex w-72 transform flex-col border-r border-slate-200 bg-white/95 shadow-xl transition-transform backdrop-blur ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className='flex items-center justify-between h-16 px-4 border-b'>
-            <span className='text-xl font-bold text-blue-600'>
-              Uniremington
-            </span>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className='p-2 rounded-md hover:bg-gray-100'
-            >
-              <FiX className='w-6 h-6' />
-            </button>
-          </div>
-          <nav className='flex-1 px-2 py-4 space-y-1'>
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon className='w-5 h-5 mr-3' />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
-
-      {/* Sidebar para desktop */}
-      <div className='hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col'>
-        <div className='flex flex-col flex-grow overflow-y-auto bg-white border-r border-gray-200'>
-          <div className='flex items-center flex-shrink-0 h-16 px-4 border-b'>
-            <span className='text-xl font-bold text-blue-600'>
-              Uniremington
-            </span>
-          </div>
-          <nav className='flex-1 px-2 py-4 space-y-1'>
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon className='w-5 h-5 mr-3' />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className='flex flex-shrink-0 p-4 border-t border-gray-200'>
-            <div className='flex items-center w-full'>
-              <div className='flex-1 min-w-0'>
-                <p className='text-sm font-medium text-gray-900 truncate'>
-                  {user?.nombres} {user?.apellidos}
+          <div className="border-b border-slate-200 px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
+                  Sanaya Suite
                 </p>
-                <p className='text-xs text-gray-500 truncate'>{user?.email}</p>
+                <span className="text-xl font-extrabold text-slate-900">Uniremington</span>
               </div>
-              <button
-                onClick={logout}
-                className='p-2 ml-3 text-gray-400 rounded-lg hover:text-gray-600 hover:bg-gray-100'
-                title='Cerrar sesión'
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Cerrar menu lateral"
               >
-                <FiLogOut className='w-5 h-5' />
-              </button>
+                <FiX className="size-5" />
+              </Button>
             </div>
           </div>
-        </div>
+
+          <nav className="flex-1 overflow-y-auto px-3 py-3">
+            {filteredGroups.map((group) => (
+              <section key={group.group} className="mb-5">
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  {group.group}
+                </p>
+                <div className="space-y-1">
+                  {group.items.map((item) =>
+                    renderNavigationItem(item, () => setSidebarOpen(false)),
+                  )}
+                </div>
+              </section>
+            ))}
+          </nav>
+
+          <div className="border-t border-slate-200 p-4">
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-100 p-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900">
+                  {user?.nombres} {user?.apellidos}
+                </p>
+                <p className="truncate text-xs text-slate-600">{user?.email}</p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={logout}
+                title="Cerrar sesion"
+                aria-label="Cerrar sesion"
+              >
+                <FiLogOut className="size-4" />
+              </Button>
+            </div>
+          </div>
+        </aside>
       </div>
 
-      {/* Contenido principal */}
-      <div className='flex flex-col flex-1 lg:pl-64'>
-        {/* Header móvil */}
-        <div className='sticky top-0 z-10 bg-white border-b border-gray-200 lg:hidden'>
-          <div className='flex items-center justify-between h-16 px-4'>
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className='p-2 text-gray-400 rounded-md hover:text-gray-600 hover:bg-gray-100'
-            >
-              <FiMenu className='w-6 h-6' />
-            </button>
-            <span className='text-lg font-bold text-blue-600'>
-              Uniremington
-            </span>
-            <button
-              onClick={logout}
-              className='p-2 text-gray-400 rounded-lg hover:text-gray-600 hover:bg-gray-100'
-            >
-              <FiLogOut className='w-5 h-5' />
-            </button>
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
+        <aside className="flex h-full flex-col border-r border-slate-200 bg-white/95 backdrop-blur">
+          <div className="border-b border-slate-200 px-4 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
+              Sanaya Suite
+            </p>
+            <span className="text-xl font-extrabold text-slate-900">Uniremington</span>
           </div>
-        </div>
 
-        {/* Contenido */}
-        <main className='flex-1'>
+          <nav className="flex-1 overflow-y-auto px-3 py-3">
+            {filteredGroups.map((group) => (
+              <section key={group.group} className="mb-5">
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  {group.group}
+                </p>
+                <div className="space-y-1">
+                  {group.items.map((item) => renderNavigationItem(item))}
+                </div>
+              </section>
+            ))}
+          </nav>
+
+          <div className="border-t border-slate-200 p-4">
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-100 p-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900">
+                  {user?.nombres} {user?.apellidos}
+                </p>
+                <p className="truncate text-xs text-slate-600">{user?.email}</p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={logout}
+                title="Cerrar sesion"
+                aria-label="Cerrar sesion"
+              >
+                <FiLogOut className="size-4" />
+              </Button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div className="flex flex-1 flex-col lg:pl-72">
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur lg:hidden">
+          <div className="flex h-16 items-center justify-between px-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <FiMenu className="size-5" />
+            </Button>
+
+            <div className="text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700">
+                Sanaya
+              </p>
+              <span className="text-base font-bold text-slate-900">Uniremington</span>
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              aria-label="Cerrar sesion"
+            >
+              <FiLogOut className="size-5" />
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1">
           <Outlet />
         </main>
       </div>

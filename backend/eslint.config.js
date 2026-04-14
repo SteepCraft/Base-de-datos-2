@@ -237,10 +237,7 @@ config.push({
       },
     ],
     "no-use-before-define": "off",
-    "@typescript-eslint/no-use-before-define": [
-      "error",
-      { functions: false, classes: true },
-    ],
+    "@typescript-eslint/no-use-before-define": ["error", { functions: false, classes: true }],
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
@@ -278,13 +275,7 @@ config.push({
 // CONFIG FILES - Permitir devDependencies del root
 // ============================================================================
 config.push({
-  files: [
-    "*.config.js",
-    "*.config.ts",
-    "eslint.config.js",
-    "prettier.config.js",
-    "**/*.d.ts",
-  ],
+  files: ["*.config.js", "*.config.ts", "eslint.config.js", "prettier.config.js", "**/*.d.ts"],
   rules: {
     "n/no-extraneous-import": "off", // Permite usar deps del root
     "import/no-unresolved": "off",

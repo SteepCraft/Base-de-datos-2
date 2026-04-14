@@ -26,7 +26,7 @@ const DetallePensum = sequelize.define(
     tableName: "DETALLE_PENSUMS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default DetallePensum;

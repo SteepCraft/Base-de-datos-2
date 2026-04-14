@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import { Op, col, fn, where } from "sequelize";
+import { col, fn, Op, where } from "sequelize";
 import models from "../models/index.js";
 
 dotenv.config();
@@ -15,11 +15,9 @@ const envAuthOnly = AUTH_MODE === "env";
 
 const parseDurationToMs = (value) => {
   if (!value || typeof value !== "string") return 8 * 60 * 60 * 1000;
-  if (value.endsWith("h"))
-    return parseInt(value.slice(0, -1), 10) * 3600 * 1000;
+  if (value.endsWith("h")) return parseInt(value.slice(0, -1), 10) * 3600 * 1000;
   if (value.endsWith("m")) return parseInt(value.slice(0, -1), 10) * 60 * 1000;
-  if (value.endsWith("d"))
-    return parseInt(value.slice(0, -1), 10) * 24 * 3600 * 1000;
+  if (value.endsWith("d")) return parseInt(value.slice(0, -1), 10) * 24 * 3600 * 1000;
   if (/^\d+$/.test(value)) return parseInt(value, 10) * 1000;
   return 8 * 60 * 60 * 1000;
 };
@@ -91,10 +89,9 @@ class AuthController {
 
       if (!plain) {
         const fallbackUser = FALLBACK_USERS.find(
-          (candidate) => candidate.email === normalizedEmail
+          (candidate) => candidate.email === normalizedEmail,
         );
-        if (!fallbackUser)
-          return res.status(401).json({ error: "Credenciales inválidas" });
+        if (!fallbackUser) return res.status(401).json({ error: "Credenciales inválidas" });
 
         if (fallbackUser.estado !== 1) {
           return res.status(403).json({ error: "Usuario inactivo" });
@@ -191,8 +188,7 @@ class AuthController {
 
   static async me(req, res) {
     try {
-      if (!req.user?.id)
-        return res.status(401).json({ error: "No autenticado" });
+      if (!req.user?.id) return res.status(401).json({ error: "No autenticado" });
 
       if (req.user.source === "env") {
         return res.json({
@@ -207,8 +203,7 @@ class AuthController {
       }
 
       const user = await models.AppUsuario.findByPk(req.user.id);
-      if (!user)
-        return res.status(404).json({ error: "Usuario no encontrado" });
+      if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
       const plain = user.get({ plain: true });
       return res.json({
@@ -232,8 +227,7 @@ class AuthController {
       sameSite: COOKIE_SECURE ? "none" : "lax",
       path: "/",
     };
-    if (COOKIE_DOMAIN && COOKIE_DOMAIN.trim())
-      clearOptions.domain = COOKIE_DOMAIN;
+    if (COOKIE_DOMAIN && COOKIE_DOMAIN.trim()) clearOptions.domain = COOKIE_DOMAIN;
     res.clearCookie("access_token", clearOptions);
     return res.json({ message: "Logout exitoso" });
   }

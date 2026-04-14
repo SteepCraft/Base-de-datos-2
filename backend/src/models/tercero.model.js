@@ -60,7 +60,7 @@ const Tercero = sequelize.define(
     tableName: "TERCEROS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Tercero;

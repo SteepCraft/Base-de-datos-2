@@ -41,9 +41,7 @@ const corsWhitelist = (process.env.FRONTEND_URL || "")
     console.log("🔗 Conexión con la base de datos establecida correctamente.");
 
     const modelNames = Object.keys(models).filter(
-      (k) =>
-        typeof models[k] === "function" &&
-        typeof models[k].findOne === "function"
+      (k) => typeof models[k] === "function" && typeof models[k].findOne === "function",
     );
 
     for (const name of modelNames) {

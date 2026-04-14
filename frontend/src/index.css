@@ -1,4 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
+
+:root {
+  --surface-0: #f6f7fb;
+  --surface-1: #ffffff;
+  --ink-900: #0f172a;
+  --ink-600: #475569;
+  --accent-500: #f59e0b;
+}
 
 /* Estilos base personalizados para Tailwind v4 */
 @layer base {
@@ -7,17 +16,13 @@
   }
 
   body {
-    font-family:
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      "Helvetica Neue",
-      Arial,
-      sans-serif;
+    font-family: "Manrope", "Segoe UI", sans-serif;
     margin: 0;
     padding: 0;
+    color: var(--ink-900);
+    background:
+      radial-gradient(circle at 20% -10%, rgb(245 158 11 / 8%), transparent 45%),
+      radial-gradient(circle at 85% -15%, rgb(14 165 233 / 7%), transparent 40%), var(--surface-0);
   }
 
   /* Asegurar que los botones tengan cursor pointer */
@@ -44,6 +49,13 @@
   select,
   textarea {
     font-size: 16px; /* Evita zoom en móviles */
+  }
+
+  code,
+  pre {
+    font-family:
+      "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
   }
 }
 

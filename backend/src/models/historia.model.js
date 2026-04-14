@@ -32,7 +32,7 @@ const Historia = sequelize.define(
     tableName: "HISTORIAS",
     timestamps: false,
     freezeTableName: true,
-  }
+  },
 );
 
 export default Historia;

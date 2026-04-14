@@ -31,9 +31,7 @@ const MODELOS_NOMBRES = [
         await modelo.findOne({ raw: true });
         console.log(`✅ Modelo disponible: ${nombre}`);
       } catch (err) {
-        console.error(
-          `❌ Error accediendo al modelo ${nombre}: ${err.message}`
-        );
+        console.error(`❌ Error accediendo al modelo ${nombre}: ${err.message}`);
       }
     }
   } catch (error) {

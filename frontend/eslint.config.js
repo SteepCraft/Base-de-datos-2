@@ -4,7 +4,6 @@ import typescriptPlugin from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import prettierConfig from "eslint-config-prettier/flat";
 import pluginImport from "eslint-plugin-import";
-import pluginJsxA11y from "eslint-plugin-jsx-a11y";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginReactRefresh from "eslint-plugin-react-refresh";
@@ -34,37 +33,7 @@ config.push({
     "react/jsx-uses-vars": "error",
     "react/jsx-no-target-blank": ["error", { allowReferrer: true }],
     "react/self-closing-comp": "warn",
-    "react/jsx-curly-brace-presence": [
-      "warn",
-      { props: "never", children: "never" },
-    ],
-  },
-});
-
-// ============================================================================
-// JSX ACCESSIBILITY (jsx-a11y)
-// ============================================================================
-config.push({
-  plugins: { "jsx-a11y": pluginJsxA11y },
-  rules: {
-    ...pluginJsxA11y.configs.recommended.rules,
-    "jsx-a11y/anchor-is-valid": [
-      "warn",
-      {
-        components: ["Link"],
-        specialLink: ["to"],
-      },
-    ],
-    // Temporalmente más permisivos - mejorar después
-    "jsx-a11y/click-events-have-key-events": "warn",
-    "jsx-a11y/no-static-element-interactions": "warn",
-    "jsx-a11y/no-noninteractive-element-interactions": "warn",
-    "jsx-a11y/label-has-associated-control": [
-      "warn",
-      {
-        assert: "either",
-      },
-    ],
+    "react/jsx-curly-brace-presence": ["warn", { props: "never", children: "never" }],
   },
 });
 
@@ -192,10 +161,7 @@ config.push({
     // React Hooks
     ...pluginReactHooks.configs.recommended.rules,
     // React Refresh (Vite HMR)
-    "react-refresh/only-export-components": [
-      "warn",
-      { allowConstantExport: true },
-    ],
+    "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     // Variables
     "no-unused-vars": [
       "warn",
@@ -206,10 +172,7 @@ config.push({
         destructuredArrayIgnorePattern: "^_",
       },
     ],
-    "no-use-before-define": [
-      "error",
-      { functions: false, classes: true, variables: true },
-    ],
+    "no-use-before-define": ["error", { functions: false, classes: true, variables: true }],
     "prefer-const": "warn",
     "no-var": "error",
     // Funciones
@@ -275,25 +238,16 @@ config.push({
       },
     ],
     "no-use-before-define": "off",
-    "@typescript-eslint/no-use-before-define": [
-      "error",
-      { functions: false, classes: true },
-    ],
+    "@typescript-eslint/no-use-before-define": ["error", { functions: false, classes: true }],
     // TypeScript específico
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/consistent-type-imports": [
-      "warn",
-      { prefer: "type-imports" },
-    ],
+    "@typescript-eslint/consistent-type-imports": ["warn", { prefer: "type-imports" }],
     // React Hooks (también para TS)
     ...pluginReactHooks.configs.recommended.rules,
     // React Refresh
-    "react-refresh/only-export-components": [
-      "warn",
-      { allowConstantExport: true },
-    ],
+    "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
   },
 });
 
