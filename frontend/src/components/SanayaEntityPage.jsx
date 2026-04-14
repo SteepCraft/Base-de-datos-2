@@ -161,7 +161,7 @@ const SearchableForeignKeyField = ({
         <PopoverContent className="w-[--radix-popover-trigger-width] p-2">
           <div className="max-h-56 overflow-y-auto rounded-md border border-slate-200">
             {isFetching && options.length === 0 ? (
-              <div className="p-3 text-sm text-slate-500">Buscando...</div>
+              <div className="p-3 text-sm text-slate-500">Cargando opciones...</div>
             ) : null}
 
             {!isFetching && options.length === 0 ? (
