@@ -7,14 +7,10 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "init": "node src/tools/init.js",
-    "clean": "pnpm run logs:clear && rm -rf node_modules && pnpm install",
-    "lint": "pnpm --workspace-root exec oxlint --import-plugin backend",
-    "lint:fix": "pnpm --workspace-root exec oxlint --import-plugin --fix backend",
-    "lint:check": "pnpm --workspace-root exec oxlint --import-plugin --quiet backend",
-    "format": "pnpm --workspace-root exec oxfmt --write backend",
-    "format:check": "pnpm --workspace-root exec oxfmt --check backend",
-    "code:check": "pnpm run lint:check && pnpm run format:check",
-    "code:fix": "pnpm run lint:fix && pnpm run format"
+    "lint": "oxlint --type-aware .",
+    "lint:fix": "oxlint --type-aware --fix .",
+    "format": "oxfmt",
+    "clean": "rm -rf node_modules dist"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

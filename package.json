@@ -5,18 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "turbo run dev",
-    "dev:all": "turbo run dev",
-    "dev:backend": "turbo run dev --filter=backend",
-    "dev:frontend": "turbo run dev --filter=frontend",
-    "build": "turbo run build --filter=frontend",
-    "build:frontend": "turbo run build --filter=frontend",
+    "build": "turbo run build",
     "lint": "turbo run lint",
-    "lint:check": "turbo run lint:check",
     "lint:fix": "turbo run lint:fix",
-    "format": "turbo run format",
-    "format:check": "turbo run format:check",
-    "code:check": "turbo run code:check",
-    "code:fix": "turbo run code:fix"
+    "format": "turbo run format"
   },
   "devDependencies": {
     "oxfmt": "^0.44.0",

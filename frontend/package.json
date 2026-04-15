@@ -7,13 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "pnpm --workspace-root exec oxlint --import-plugin --react-plugin frontend",
-    "lint:fix": "pnpm --workspace-root exec oxlint --import-plugin --react-plugin --fix frontend",
-    "lint:check": "pnpm --workspace-root exec oxlint --import-plugin --react-plugin --quiet frontend",
-    "format": "pnpm --workspace-root exec oxfmt --write frontend",
-    "format:check": "pnpm --workspace-root exec oxfmt --check frontend",
-    "code:check": "pnpm run lint:check && pnpm run format:check",
-    "code:fix": "pnpm run lint:fix && pnpm run format"
+    "lint": "oxlint --type-aware .",
+    "lint:fix": "oxlint --type-aware --fix .",
+    "format": "oxfmt",
+    "clean": "rm -rf node_modules dist .vite"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
