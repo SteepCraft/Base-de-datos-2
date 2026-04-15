@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import PropTypes from "prop-types";
 import { Navigate } from "react-router-dom";
 
@@ -8,8 +9,11 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <div className="inline-flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
+          <Loader2 className="size-4 animate-spin text-primary" />
+          Verificando sesion...
+        </div>
       </div>
     );
   }

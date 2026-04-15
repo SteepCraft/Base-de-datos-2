@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { FiAlertCircle, FiLock, FiMail } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
+import ThemeToggle from "../components/ThemeToggle";
+import { Alert, AlertDescription } from "../components/ui/alert";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -16,8 +22,8 @@ const Login = () => {
     if (isAuthenticated) navigate("/", { replace: true });
   }, [isAuthenticated, navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError("");
     const result = await login(email, password);
@@ -30,73 +36,71 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <div className="flex items-center justify-center w-16 h-16 mx-auto bg-blue-600 rounded-full">
-            <span className="text-2xl font-bold text-white">SN</span>
+    <div className="relative flex min-h-screen items-center justify-center px-4">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
+
+      <Card className="w-full max-w-md border-border/80 shadow-xl">
+        <CardHeader className="space-y-4 text-center">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <span className="text-2xl font-bold">SN</span>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">SANAYA</h2>
-          <p className="mt-2 text-sm text-center text-gray-600">Inicia sesión para continuar</p>
-        </div>
+          <div>
+            <CardTitle className="text-3xl">SANAYA</CardTitle>
+            <p className="mt-2 text-sm text-muted-foreground">Inicia sesion para continuar</p>
+          </div>
+        </CardHeader>
 
-        <form className="p-8 mt-8 space-y-6 bg-white shadow-lg rounded-xl" onSubmit={handleSubmit}>
-          {error && (
-            <div className="p-4 rounded-md bg-red-50">
-              <div className="flex">
-                <FiAlertCircle className="w-5 h-5 text-red-400" />
-                <h3 className="ml-3 text-sm font-medium text-red-800">{error}</h3>
-              </div>
-            </div>
-          )}
+        <CardContent className="space-y-6">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription className="inline-flex items-center gap-2">
+                <FiAlertCircle className="size-4" />
+                {error}
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
-          <div className="space-y-4">
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Correo electrónico
-              </label>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo electronico</Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FiMail className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
+                <FiMail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full py-2.5 pl-10 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="pl-9"
                   placeholder="admin@sanaya.local"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">Contraseña</label>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contrasena</Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FiLock className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
+                <FiLock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="password"
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full py-2.5 pl-10 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="pl-9"
                   placeholder="••••••••"
                 />
               </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? "Ingresando..." : "Iniciar sesión"}
-          </button>
-        </form>
-      </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Ingresando..." : "Iniciar sesion"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

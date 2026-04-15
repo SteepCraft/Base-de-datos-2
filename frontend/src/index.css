@@ -2,27 +2,92 @@
 @import "tailwindcss";
 
 :root {
-  --surface-0: #f6f7fb;
-  --surface-1: #ffffff;
-  --ink-900: #0f172a;
-  --ink-600: #475569;
-  --accent-500: #f59e0b;
+  --background: 220 33% 97%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --primary: 37 92% 50%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 214 30% 92%;
+  --secondary-foreground: 222 47% 14%;
+
+  --muted: 214 28% 94%;
+  --muted-foreground: 215 16% 40%;
+
+  --accent: 214 30% 90%;
+  --accent-foreground: 222 47% 11%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214 32% 89%;
+  --input: 214 32% 89%;
+  --ring: 37 92% 50%;
+
+  --radius: 0.85rem;
+
+  --glow-amber: rgb(245 158 11 / 10%);
+  --glow-cyan: rgb(14 165 233 / 8%);
+}
+
+.dark {
+  --background: 222 44% 8%;
+  --foreground: 210 40% 98%;
+
+  --card: 222 38% 12%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222 36% 12%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 37 92% 50%;
+  --primary-foreground: 220 27% 10%;
+
+  --secondary: 217 28% 19%;
+  --secondary-foreground: 210 40% 96%;
+
+  --muted: 217 28% 16%;
+  --muted-foreground: 215 20% 68%;
+
+  --accent: 217 28% 19%;
+  --accent-foreground: 210 40% 96%;
+
+  --destructive: 0 65% 43%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217 28% 23%;
+  --input: 217 28% 23%;
+  --ring: 37 92% 50%;
+
+  --glow-amber: rgb(245 158 11 / 18%);
+  --glow-cyan: rgb(14 165 233 / 14%);
 }
 
 /* Estilos base personalizados para Tailwind v4 */
 @layer base {
   * {
     box-sizing: border-box;
+    border-color: hsl(var(--border));
   }
 
   body {
     font-family: "Manrope", "Segoe UI", sans-serif;
     margin: 0;
     padding: 0;
-    color: var(--ink-900);
+    color: hsl(var(--foreground));
     background:
-      radial-gradient(circle at 20% -10%, rgb(245 158 11 / 8%), transparent 45%),
-      radial-gradient(circle at 85% -15%, rgb(14 165 233 / 7%), transparent 40%), var(--surface-0);
+      radial-gradient(circle at 20% -10%, var(--glow-amber), transparent 45%),
+      radial-gradient(circle at 85% -15%, var(--glow-cyan), transparent 40%), hsl(var(--background));
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease;
   }
 
   /* Asegurar que los botones tengan cursor pointer */
@@ -49,6 +114,8 @@
   select,
   textarea {
     font-size: 16px; /* Evita zoom en móviles */
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
   }
 
   code,

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import PropTypes from "prop-types";
 import { useMemo, useState } from "react";
 
@@ -12,7 +12,25 @@ import {
   updateEntity,
 } from "../config/sanayaApi";
 import { cn } from "../lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import { Button } from "./ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./ui/command";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +41,9 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 const emptyForm = (fields) => fields.reduce((acc, field) => ({ ...acc, [field]: "" }), {});
 
@@ -143,60 +163,54 @@ const SearchableForeignKeyField = ({
           <Button
             type="button"
             variant="outline"
+            role="combobox"
+            aria-expanded={open}
             disabled={disabled}
             className={cn(
               "w-full justify-between font-normal",
-              !selectedLabel && "text-slate-400",
-              error && "border-red-300 text-red-700",
+              !selectedLabel && "text-muted-foreground",
+              error && "border-destructive/60 text-destructive",
             )}
           >
             <span className="truncate text-left">{selectedLabel || placeholder}</span>
             {isFetching ? (
-              <Loader2 className="size-4 animate-spin text-slate-400" />
+              <Loader2 className="size-4 animate-spin text-muted-foreground" />
             ) : (
-              <ChevronDown className="size-4 text-slate-400" />
+              <ChevronsUpDown className="size-4 text-muted-foreground" />
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-2">
-          <div className="max-h-56 overflow-y-auto rounded-md border border-slate-200">
-            {isFetching && options.length === 0 ? (
-              <div className="p-3 text-sm text-slate-500">Cargando opciones...</div>
-            ) : null}
-
-            {!isFetching && options.length === 0 ? (
-              <div className="p-3 text-sm text-slate-500">{emptyText}</div>
-            ) : null}
-
-            {options.map((option) => {
-              const isSelected = String(option.id) === normalizedValue;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => {
-                    onChange(String(option.id));
-                    handleClose();
-                  }}
-                  className={cn(
-                    "flex w-full items-start gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100",
-                    isSelected && "bg-amber-50 text-amber-900",
-                  )}
-                >
-                  <Check
-                    className={cn(
-                      "mt-0.5 size-4 shrink-0",
-                      isSelected ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <span>{cleanDisplayText(option.label)}</span>
-                </button>
-              );
-            })}
-          </div>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <Command>
+            <CommandInput placeholder="Buscar opcion..." />
+            <CommandList>
+              {isFetching && options.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-muted-foreground">Cargando opciones...</div>
+              ) : null}
+              <CommandEmpty>{emptyText}</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => {
+                  const isSelected = String(option.id) === normalizedValue;
+                  return (
+                    <CommandItem
+                      key={option.id}
+                      value={`${option.id} ${cleanDisplayText(option.label)}`}
+                      onSelect={() => {
+                        onChange(String(option.id));
+                        handleClose();
+                      }}
+                    >
+                      <Check className={cn("size-4", isSelected ? "opacity-100" : "opacity-0")} />
+                      <span className="line-clamp-1">{cleanDisplayText(option.label)}</span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
+          </Command>
         </PopoverContent>
       </Popover>
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   );
 };
@@ -230,6 +244,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
   const [formData, setFormData] = useState(emptyForm(config.fields));
   const [formErrors, setFormErrors] = useState({});
   const [relationshipLabels, setRelationshipLabels] = useState({});
+  const [rowToDelete, setRowToDelete] = useState(null);
   const queryKey = ["sanaya", entityKey];
 
   const { data, isLoading } = useQuery({
@@ -265,6 +280,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
     mutationFn: (pkValues) => deleteEntity(entityKey, config.pk, pkValues),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sanaya", entityKey] });
+      setRowToDelete(null);
     },
   });
 
@@ -386,12 +402,17 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
     createMutation.mutate(payload);
   };
 
+  const handleConfirmDelete = () => {
+    if (!rowToDelete) return;
+    deleteMutation.mutate(getPkValues(rowToDelete));
+  };
+
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8">
       {showHeader ? (
-        <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
-          <p className="mt-1 text-sm text-slate-600">{subtitle || config.label}</p>
+        <section className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle || config.label}</p>
         </section>
       ) : null}
 
@@ -430,17 +451,14 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
 
                   return (
                     <div key={field} className="space-y-2">
-                      <label
-                        htmlFor={`${entityKey}-${field}`}
-                        className="text-sm font-medium text-slate-700"
-                      >
+                      <Label htmlFor={`${entityKey}-${field}`} className="text-sm font-medium">
                         {fieldLabel}
                         {isPk ? (
                           <span className="ml-1 text-red-500" title="Requerido">
                             *
                           </span>
                         ) : null}
-                      </label>
+                      </Label>
 
                       {isForeignKey ? (
                         <SearchableForeignKeyField
@@ -471,7 +489,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
                             }
                             className={cn(error && "border-red-300")}
                           />
-                          {error ? <p className="text-xs text-red-600">{error}</p> : null}
+                          {error ? <p className="text-xs text-destructive">{error}</p> : null}
                         </>
                       )}
                     </div>
@@ -504,93 +522,99 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
         </Dialog>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-100/70">
-              <tr>
-                {visibleFields.map((field) => (
-                  <th
-                    key={field}
-                    scope="col"
-                    className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
-                  >
-                    {getFriendlyFieldLabel(config, field)}
-                  </th>
-                ))}
-                <th
-                  scope="col"
-                  className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-600"
-                >
-                  Acciones
-                </th>
-              </tr>
-            </thead>
+      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <Table>
+          <TableHeader className="bg-muted/70">
+            <TableRow>
+              {visibleFields.map((field) => (
+                <TableHead key={field} scope="col">
+                  {getFriendlyFieldLabel(config, field)}
+                </TableHead>
+              ))}
+              <TableHead scope="col" className="text-right">
+                Acciones
+              </TableHead>
+            </TableRow>
+          </TableHeader>
 
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={visibleFields.length + 1}
-                    className="px-5 py-10 text-center text-sm text-slate-500"
-                  >
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={visibleFields.length + 1}
+                  className="py-10 text-center text-sm text-muted-foreground"
+                >
+                  <div className="inline-flex items-center gap-2">
+                    <Loader2 className="size-4 animate-spin" />
+                    Cargando registros...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredRows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={visibleFields.length + 1}
+                  className="py-10 text-center text-sm text-muted-foreground"
+                >
+                  No se encontraron registros
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredRows.map((row, index) => (
+                <TableRow
+                  key={`${entityKey}-${config.pk.map((field) => row[field]).join("-") || index}`}
+                  className="hover:bg-muted/40"
+                >
+                  {visibleFields.map((field) => (
+                    <TableCell key={`${field}-${index}`} className="max-w-[280px] text-foreground">
+                      <span className="line-clamp-2">{renderCell(row, field)}</span>
+                    </TableCell>
+                  ))}
+                  <TableCell className="text-right">
                     <div className="inline-flex items-center gap-2">
-                      <Loader2 className="size-4 animate-spin" />
-                      Cargando registros...
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredRows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={visibleFields.length + 1}
-                    className="px-5 py-10 text-center text-sm text-slate-500"
-                  >
-                    No se encontraron registros
-                  </td>
-                </tr>
-              ) : (
-                filteredRows.map((row, index) => (
-                  <tr key={`${entityKey}-${index}`} className="hover:bg-slate-50">
-                    {visibleFields.map((field) => (
-                      <td
-                        key={`${field}-${index}`}
-                        className="max-w-[280px] px-5 py-3 text-sm text-slate-700"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEdit(row)}
+                        aria-label="Editar"
                       >
-                        <span className="line-clamp-2">{renderCell(row, field)}</span>
-                      </td>
-                    ))}
-                    <td className="px-5 py-3 text-right">
-                      <div className="inline-flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(row)}
-                          aria-label="Editar"
-                        >
-                          <Pencil className="size-4 text-amber-700" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (window.confirm("¿Seguro que deseas eliminar este registro?")) {
-                              deleteMutation.mutate(getPkValues(row));
-                            }
-                          }}
-                          aria-label="Eliminar"
-                        >
-                          <Trash2 className="size-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                        <Pencil className="size-4 text-primary" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setRowToDelete(row)}
+                        aria-label="Eliminar"
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </section>
+
+      <AlertDialog
+        open={Boolean(rowToDelete)}
+        onOpenChange={(open) => !open && setRowToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar registro</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta accion eliminara el registro de forma permanente. Esta accion no se puede
+              deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Eliminar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

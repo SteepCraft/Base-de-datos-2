@@ -12,7 +12,7 @@ const DialogClose = DialogPrimitive.Close;
 const DialogOverlay = forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-[1px]", className)}
+    className={cn("fixed inset-0 z-50 bg-black/55 backdrop-blur-[1px]", className)}
     {...props}
   />
 ));
@@ -24,13 +24,13 @@ const DialogContent = forwardRef(({ className, children, ...props }, ref) => (
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-4xl translate-x-[-50%] translate-y-[-50%] gap-4 border border-slate-200 bg-white p-0 shadow-xl duration-200 sm:rounded-xl",
+        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-4xl translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-card p-0 text-card-foreground shadow-xl duration-200 sm:rounded-xl",
         className,
       )}
       {...props}
     >
       {children}
-      <DialogClose className="absolute right-4 top-4 rounded-md p-1 text-slate-500 transition-opacity hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60">
+      <DialogClose className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition-opacity hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
         <X className="size-4" />
         <span className="sr-only">Cerrar</span>
       </DialogClose>
@@ -42,7 +42,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 border-b border-slate-200 px-6 py-4 text-left",
+      "flex flex-col space-y-1.5 border-b border-border px-6 py-4 text-left",
       className,
     )}
     {...props}
@@ -52,7 +52,7 @@ const DialogHeader = ({ className, ...props }) => (
 const DialogFooter = ({ className, ...props }) => (
   <div
     className={cn(
-      "flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50/80 px-6 py-4 sm:flex-row sm:justify-end",
+      "flex flex-col-reverse gap-2 border-t border-border bg-muted/50 px-6 py-4 sm:flex-row sm:justify-end",
       className,
     )}
     {...props}
@@ -62,7 +62,7 @@ const DialogFooter = ({ className, ...props }) => (
 const DialogTitle = forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold text-slate-900", className)}
+    className={cn("text-lg font-semibold text-foreground", className)}
     {...props}
   />
 ));
@@ -71,7 +71,7 @@ DialogTitle.displayName = DialogPrimitive.Title.displayName;
 const DialogDescription = forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-slate-600", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ));

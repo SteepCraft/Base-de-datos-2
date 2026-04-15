@@ -350,7 +350,16 @@ class SanayaController {
         const { model, entity } = modelConfig;
         const pkId = entity.pk[0];
         const rows = await model.findAll({ limit: 50, raw: true });
-        return res.json(rows.map((r) => ({ id: r[pkId], label: String(r[pkId]) })));
+
+        const sample = rows[0] || {};
+        const labelKey = Object.keys(sample).find((key) => key !== pkId && !key.endsWith("_id"));
+
+        return res.json(
+          rows.map((r) => ({
+            id: r[pkId],
+            label: String(labelKey ? r[labelKey] || r[pkId] : r[pkId]),
+          })),
+        );
       }
 
       const modelConfig = getModel(entityName);
