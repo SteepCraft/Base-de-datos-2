@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    /* Strictness */
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    /* Module behavior */
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Build */
+    "skipLibCheck": true,
+    "noEmit": true,
+    "incremental": true
+  }
+}
