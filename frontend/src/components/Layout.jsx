@@ -15,7 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 const NAVIGATION_GROUPS = [
   {
@@ -129,6 +129,10 @@ const Layout = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 border-r border-border bg-card/95 p-0">
+                <SheetTitle className="sr-only">Menu principal de navegacion</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Navega entre dashboard, modulos academicos y herramientas.
+                </SheetDescription>
                 <div className="border-b border-border px-4 py-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                     Sanaya Suite

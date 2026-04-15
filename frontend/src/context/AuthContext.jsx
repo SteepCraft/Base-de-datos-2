@@ -5,11 +5,47 @@ import api from "../config/api";
 
 const AuthContext = createContext(null);
 
+const getStoredUser = () => {
+  try {
+    const value = localStorage.getItem("user");
+    return value ? JSON.parse(value) : null;
+  } catch (_error) {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
+const isTokenExpired = (token) => {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return true;
+
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const decoded = JSON.parse(atob(padded));
+
+    if (!decoded?.exp) return false;
+    return decoded.exp * 1000 <= Date.now();
+  } catch (_error) {
+    return true;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getStoredUser());
   const [loading, setLoading] = useState(true);
 
   const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token || isTokenExpired(token)) {
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
+      setLoading(false);
+      return { success: false };
+    }
+
     try {
       const response = await api.get("/auth/me");
       setUser(response.data.user);

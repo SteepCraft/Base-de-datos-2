@@ -6,14 +6,17 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true, // ← CRÍTICO: Envía cookies automáticamente
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 api.interceptors.request.use((config) => {
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+    // Let the browser add multipart boundaries for FormData requests.
+    delete config.headers?.["Content-Type"];
+  }
+
   const token = localStorage.getItem("access_token");
   if (token) {
+    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

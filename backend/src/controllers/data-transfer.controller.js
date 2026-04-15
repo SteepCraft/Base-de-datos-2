@@ -30,6 +30,7 @@ const SUPPORTED_IMPORTS = {
   historias: { model: "Historia" },
 };
 const SUPPORTED_FORMATS = new Set(["xlsx", "csv"]);
+const PREVIEW_LIMIT = 10;
 const HEADER_TERC_ID = new Set(["TERC_ID", "ID"]);
 const HEADER_TERC_TIPO_DOC = new Set(["TERC_TIPO_DOC", "TIPO_DOC"]);
 const HEADER_TERC_NRO_DOC = new Set(["TERC_NRO_DOC", "NRO_DOC", "DOCUMENTO"]);
@@ -92,6 +93,44 @@ const normalizeImportValue = (value) => {
     return trimmed === "" ? null : trimmed;
   }
   return value;
+};
+
+const normalizePreviewValue = (value) => {
+  if (value === undefined || value === null) return "";
+  if (value instanceof Date) return value.toISOString();
+  return String(value);
+};
+
+const buildPreviewPayload = (rows, limit = PREVIEW_LIMIT) => {
+  const sampleRows = rows.slice(0, limit);
+  const columns = Array.from(
+    sampleRows.reduce((acc, row) => {
+      Object.keys(row).forEach((key) => {
+        const normalizedKey = String(key ?? "").trim();
+        if (normalizedKey) {
+          acc.add(normalizedKey);
+        }
+      });
+      return acc;
+    }, new Set()),
+  );
+
+  const previewRows = sampleRows.map((row, index) => {
+    const data = columns.reduce((acc, column) => {
+      acc[column] = normalizePreviewValue(row[column]);
+      return acc;
+    }, {});
+
+    return {
+      excelRow: index + 2,
+      data,
+    };
+  });
+
+  return {
+    columns,
+    rows: previewRows,
+  };
 };
 
 const getModelFieldMap = (model) => {
@@ -167,6 +206,48 @@ const reportBuilders = {
 };
 
 class DataTransferController {
+  static previewImport(req, res) {
+    try {
+      const entity = String(req.params.entity || "").toLowerCase();
+      const config = SUPPORTED_IMPORTS[entity];
+
+      if (!config) {
+        return res.status(400).json({
+          error: "Entidad no soportada para importación",
+          supported: Object.keys(SUPPORTED_IMPORTS),
+        });
+      }
+
+      if (!req.file?.buffer) {
+        return res.status(400).json({ error: "Archivo requerido en campo 'file'" });
+      }
+
+      const rows = parseRowsFromFile(req.file);
+      if (!rows.length) {
+        return res.status(200).json({
+          entity,
+          totalRows: 0,
+          previewRows: 0,
+          columns: [],
+          rows: [],
+          message: "El archivo no contiene filas para previsualizar",
+        });
+      }
+
+      const preview = buildPreviewPayload(rows);
+
+      return res.status(200).json({
+        entity,
+        totalRows: rows.length,
+        previewRows: preview.rows.length,
+        columns: preview.columns,
+        rows: preview.rows,
+      });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   static importEntity(req, res) {
     const entity = String(req.params.entity || "").toLowerCase();
     const config = SUPPORTED_IMPORTS[entity];
