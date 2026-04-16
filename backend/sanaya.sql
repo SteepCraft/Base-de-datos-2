@@ -123,9 +123,18 @@ NOCYCLE;
 -- 1) Trigger de acceso por dias y horas laborales
 CREATE OR REPLACE TRIGGER SANAYA.ACCESO_DIAS_HORAS
     BEFORE INSERT OR UPDATE OR DELETE ON SANAYA.TERCEROS
+DECLARE
+    -- Evalua siempre contra la zona horaria de negocio.
+    V_NOW TIMESTAMP WITH TIME ZONE := SYSTIMESTAMP AT TIME ZONE 'America/Bogota';
+    V_DAY VARCHAR2(3);
+    V_HHMM NUMBER(4);
 BEGIN
-    IF TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH') IN ('SAT', 'SUN')
-        OR TO_CHAR(SYSDATE, 'HH24:MI') NOT BETWEEN '08:00' AND '18:00' THEN
+    V_DAY := TO_CHAR(V_NOW, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH');
+    V_HHMM := TO_NUMBER(TO_CHAR(V_NOW, 'HH24MI'));
+
+    IF V_DAY IN ('SAT', 'SUN')
+        OR V_HHMM < 800
+        OR V_HHMM > 1800 THEN
         IF DELETING THEN
             RAISE_APPLICATION_ERROR(-20501, 'Usted solo puede borrar registros en dias y horas laborales');
         ELSIF INSERTING THEN
