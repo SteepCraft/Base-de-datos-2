@@ -8,8 +8,6 @@ const alertVariants = cva("w-full rounded-lg border px-4 py-3 text-sm", {
     variant: {
       default: "border-border bg-card text-card-foreground",
       destructive: "border-destructive/40 bg-destructive/10 text-destructive",
-      success:
-        "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-700/40 dark:bg-emerald-900/30 dark:text-emerald-100",
     },
   },
   defaultVariants: {

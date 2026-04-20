@@ -26,6 +26,11 @@
       "sourceType": "github",
       "computedHash": "44808aefb361ada1250783eb31ccb20aa020e2c61466e52f53efb10ce20d793b"
     },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "computedHash": "873c67922d80775a9fdf596db7964b579f0408c30ec6e3d11989f6055bbec89f"
+    },
     "tailwind-css-patterns": {
       "source": "giuseppe-trisciuoglio/developer-kit",
       "sourceType": "github",

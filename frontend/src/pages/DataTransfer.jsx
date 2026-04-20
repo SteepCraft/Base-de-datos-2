@@ -1,7 +1,11 @@
 import { saveAs } from "file-saver";
+import { CheckCircle2, CircleAlert, UploadCloud } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +14,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import {
   Table,
   TableBody,
@@ -21,6 +33,7 @@ import {
 import { Input } from "../components/ui/input";
 import api from "../config/api";
 import { SANAYA_ENTITIES } from "../config/sanayaApi";
+import { cn } from "../lib/utils";
 
 const DATA_TRANSFER_ENTITY_PARAM_MAP = {
   "detalle-pensums": "detalles_pensum",
@@ -31,8 +44,8 @@ const toTransferEntityParam = (entityKey) =>
 
 const DataTransfer = () => {
   const [file, setFile] = useState(null);
-  const [exportEntity, setExportEntity] = useState("historias"); // Estado para la entidad a exportar
-  const [importEntity, setImportEntity] = useState("terceros"); // Estado para la entidad a importar
+  const [exportEntity, setExportEntity] = useState("historias");
+  const [importEntity, setImportEntity] = useState("terceros");
   const [loadingAction, setLoadingAction] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -49,13 +62,28 @@ const DataTransfer = () => {
   const isImporting = loadingAction === "import";
   const isExporting = loadingAction === "export";
 
-  const selectedImportEntity = Object.entries(SANAYA_ENTITIES).find(
-    ([key]) => toTransferEntityParam(key) === importEntity,
-  )?.[1];
+  const transferEntityOptions = useMemo(
+    () => [
+      ...Object.entries(SANAYA_ENTITIES).map(([key, entity]) => ({
+        label: entity.label,
+        value: toTransferEntityParam(key),
+      })),
+      {
+        label: "Usuarios",
+        value: "usuarios",
+      },
+    ],
+    [],
+  );
 
-  const importEntityLabel = selectedImportEntity?.label || importEntity;
+  const selectedImportEntity = transferEntityOptions.find(
+    (entityOption) => entityOption.value === importEntity,
+  );
+
+  const importEntityLabel = selectedImportEntity?.label ?? importEntity;
   const previewColumns = importPreview?.columns || [];
   const previewRows = importPreview?.rows || [];
+  const hasFailedRows = Array.isArray(importSummary?.failed) && importSummary.failed.length > 0;
 
   const filteredPreviewRows = useMemo(() => {
     const normalizedQuery = previewSearch.trim().toLowerCase();
@@ -179,14 +207,14 @@ const DataTransfer = () => {
   };
 
   const handleDragOver = (e) => {
-    e.preventDefault(); // Necesario para que el evento drop funcione
+    e.preventDefault();
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.name.endsWith(".xlsx")) {
+    if (droppedFile && droppedFile.name.toLowerCase().endsWith(".xlsx")) {
       setFile(droppedFile);
       resetImportState();
     } else {
@@ -270,88 +298,202 @@ const DataTransfer = () => {
     }
   };
 
+  const getSortIndicator = (column) => {
+    if (sortColumn !== column) return "↕";
+    return sortDirection === "asc" ? "↑" : "↓";
+  };
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Importar/Exportar Datos</h1>
+    <div className="flex flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <Card>
+        <CardHeader className="gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">shadcn neutral</Badge>
+            <Badge variant="outline">Transferencia de datos</Badge>
+          </div>
+          <CardTitle>Importar y exportar archivos XLSX</CardTitle>
+          <CardDescription>
+            Selecciona una entidad, carga tu archivo y valida el preview antes de confirmar.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      <div className="mb-8 p-4 border rounded">
-        <h2 className="text-xl mb-2">Importar Datos (XLSX)</h2>
-        <div className="mb-2">
-          <label htmlFor="import-entity-select" className="mr-2">
-            Seleccionar Entidad a Importar:
-          </label>
-          <select
-            id="import-entity-select"
-            value={importEntity}
-            onChange={(e) => {
-              setImportEntity(e.target.value);
-              resetImportState();
-            }}
-            className="p-2 border rounded"
-          >
-            {Object.keys(SANAYA_ENTITIES).map((key) => (
-              <option key={key} value={toTransferEntityParam(key)}>
-                {SANAYA_ENTITIES[key].label}
-              </option>
-            ))}
-            <option value="usuarios">Usuarios</option>
-          </select>
-        </div>
+      <div className="grid gap-6 xl:grid-cols-5">
+        <Card className="xl:col-span-3 bg-card/95">
+          <CardHeader>
+            <CardTitle>Importar datos</CardTitle>
+            <CardDescription>
+              Carga un archivo XLSX y revisa su previsualización antes de insertar registros.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2 rounded-lg border border-border/70 bg-muted/25 p-4">
+              <p className="text-sm font-medium text-foreground">Entidad de destino</p>
+              <Select
+                value={importEntity}
+                onValueChange={(nextValue) => {
+                  setImportEntity(nextValue);
+                  resetImportState();
+                }}
+              >
+                <SelectTrigger id="import-entity-select">
+                  <SelectValue placeholder="Seleccionar entidad" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {transferEntityOptions.map((entityOption) => (
+                      <SelectItem key={entityOption.value} value={entityOption.value}>
+                        {entityOption.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          className={`border-2 border-dashed rounded p-8 text-center ${
-            isDragging ? "border-blue-500 bg-blue-100" : "border-gray-300"
-          }`}
-        >
-          <input
-            type="file"
-            accept=".xlsx"
-            onChange={handleFileChange}
-            className="hidden" // Ocultamos el input original
-            id="file-input"
-          />
-          <label htmlFor="file-input" className="cursor-pointer">
-            <p>Arrastra y suelta un archivo .xlsx aquí, o haz clic para seleccionarlo.</p>
-          </label>
-          {file && <p className="mt-2 text-green-600">Archivo seleccionado: {file.name}</p>}
-        </div>
+            <div
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              className={cn(
+                "rounded-xl border-2 border-dashed border-border bg-muted/30 px-5 py-7 text-center transition-all",
+                isDragging && "border-primary bg-accent/40 ring-2 ring-ring/30",
+                file && "border-primary/55 bg-card",
+              )}
+            >
+              <input
+                id="file-input"
+                type="file"
+                accept=".xlsx"
+                onChange={handleFileChange}
+                className="sr-only"
+              />
 
-        <Button onClick={handlePreviewImport} disabled={isBusy || !file} className="mt-4">
-          {isPreviewLoading ? "Generando preview..." : "Previsualizar e importar"}
-        </Button>
+              <label
+                htmlFor="file-input"
+                className="flex cursor-pointer flex-col items-center gap-2"
+              >
+                <UploadCloud className="size-5 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">
+                  Arrastra y suelta tu archivo o haz clic para seleccionarlo
+                </p>
+                <p className="text-xs text-muted-foreground">Solo se admite formato .xlsx</p>
+              </label>
+
+              {file ? (
+                <div className="mt-3 flex justify-center">
+                  <Badge variant="outline" className="truncate max-w-full">
+                    Archivo: {file.name}
+                  </Badge>
+                </div>
+              ) : null}
+            </div>
+
+            <Button
+              onClick={handlePreviewImport}
+              disabled={isBusy || !file}
+              className="w-full sm:w-fit"
+            >
+              {isPreviewLoading ? "Generando preview..." : "Previsualizar e importar"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="xl:col-span-2 bg-card/95">
+          <CardHeader>
+            <CardTitle>Exportar datos</CardTitle>
+            <CardDescription>
+              Descarga registros existentes en formato XLSX para respaldo o conciliación.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2 rounded-lg border border-border/70 bg-muted/25 p-4">
+              <p className="text-sm font-medium text-foreground">Entidad a exportar</p>
+              <Select value={exportEntity} onValueChange={setExportEntity}>
+                <SelectTrigger id="entity-select">
+                  <SelectValue placeholder="Seleccionar entidad" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {transferEntityOptions.map((entityOption) => (
+                      <SelectItem key={entityOption.value} value={entityOption.value}>
+                        {entityOption.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              onClick={handleExport}
+              disabled={isBusy}
+              variant="secondary"
+              className="w-full sm:w-fit"
+            >
+              {isExporting ? "Exportando..." : "Exportar"}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="p-4 border rounded">
-        <h2 className="text-xl mb-2">Exportar Datos (XLSX)</h2>
-        <div className="mb-2">
-          <label htmlFor="entity-select" className="mr-2">
-            Seleccionar Entidad a Exportar:
-          </label>
-          <select
-            id="entity-select"
-            value={exportEntity}
-            onChange={(e) => setExportEntity(e.target.value)}
-            className="p-2 border rounded"
-          >
-            {Object.keys(SANAYA_ENTITIES).map((key) => (
-              <option key={key} value={toTransferEntityParam(key)}>
-                {SANAYA_ENTITIES[key].label}
-              </option>
-            ))}
-            <option value="usuarios">Usuarios</option>
-          </select>
+      {error || success ? (
+        <div className="flex flex-col gap-3">
+          {error ? (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertTitle>Error durante la operación</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {success ? (
+            <Alert>
+              <CheckCircle2 className="size-4" />
+              <AlertTitle>Operación completada</AlertTitle>
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          ) : null}
         </div>
-        <Button onClick={handleExport} disabled={isBusy} variant="secondary">
-          {isExporting ? "Exportando..." : "Exportar"}
-        </Button>
-      </div>
+      ) : null}
+
+      {hasFailedRows ? (
+        <Card className="border-destructive/35 bg-card/95">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle>Registros no importados</CardTitle>
+                <CardDescription>
+                  Corrige estos errores y vuelve a cargar el archivo para completar la importación.
+                </CardDescription>
+              </div>
+              <Badge variant="destructive">{importSummary.failed.length} fallidos</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fila (Excel)</TableHead>
+                  <TableHead>Razón del fallo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {importSummary.failed.map((item, index) => (
+                  <TableRow key={`${item.row}-${index}`}>
+                    <TableCell>{item.row}</TableCell>
+                    <TableCell>{item.reason}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-6xl">
           <DialogHeader>
             <DialogTitle>Previsualización de importación</DialogTitle>
             <DialogDescription>
@@ -361,7 +503,7 @@ const DataTransfer = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[55vh] overflow-auto px-6 pb-2">
+          <div className="max-h-[55vh] overflow-auto rounded-lg border border-border/70 bg-muted/20 px-6 pb-2">
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Input
                 value={previewSearch}
@@ -383,10 +525,14 @@ const DataTransfer = () => {
                         <button
                           type="button"
                           onClick={() => handleSort("excelRow")}
-                          className="inline-flex items-center gap-1"
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-semibold transition-colors",
+                            sortColumn === "excelRow"
+                              ? "border-border bg-accent text-foreground"
+                              : "text-muted-foreground hover:border-border hover:bg-accent/70 hover:text-foreground",
+                          )}
                         >
-                          Fila (Excel){" "}
-                          {sortColumn === "excelRow" ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
+                          Fila (Excel) {getSortIndicator("excelRow")}
                         </button>
                       </TableHead>
                       {previewColumns.map((column) => (
@@ -394,10 +540,14 @@ const DataTransfer = () => {
                           <button
                             type="button"
                             onClick={() => handleSort(column)}
-                            className="inline-flex items-center gap-1"
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-semibold transition-colors",
+                              sortColumn === column
+                                ? "border-border bg-accent text-foreground"
+                                : "text-muted-foreground hover:border-border hover:bg-accent/70 hover:text-foreground",
+                            )}
                           >
-                            {column}{" "}
-                            {sortColumn === column ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}
+                            {column} {getSortIndicator(column)}
                           </button>
                         </TableHead>
                       ))}
@@ -445,45 +595,6 @@ const DataTransfer = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-700 border border-red-200 rounded">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="mt-4 p-4 bg-green-100 text-green-700 border border-green-200 rounded">
-          {success}
-        </div>
-      )}
-
-      {importSummary && importSummary.failed && importSummary.failed.length > 0 && (
-        <div className="mt-4 p-4 border rounded">
-          <h3 className="text-lg font-bold text-yellow-800">Registros Fallidos</h3>
-          <p className="mb-2 text-sm text-yellow-700">
-            Los siguientes registros no pudieron ser importados. Por favor, corrige los errores y
-            vuelve a intentarlo.
-          </p>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fila (Excel)</TableHead>
-                  <TableHead>Razón del Fallo</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {importSummary.failed.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item.row}</TableCell>
-                    <TableCell>{item.reason}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

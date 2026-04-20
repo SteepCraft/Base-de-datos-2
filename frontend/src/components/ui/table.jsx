@@ -3,19 +3,26 @@ import { forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
 const Table = forwardRef(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  <div className="relative w-full overflow-auto rounded-xl bg-card/90">
     <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
   </div>
 ));
 Table.displayName = "Table";
 
 const TableHeader = forwardRef(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn("bg-muted/65 [&_tr]:border-b", className)} {...props} />
 ));
 TableHeader.displayName = "TableHeader";
 
 const TableBody = forwardRef(({ className, ...props }, ref) => (
-  <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />
+  <tbody
+    ref={ref}
+    className={cn(
+      "[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-muted/20 [&_tr:nth-child(odd)]:bg-card/80",
+      className,
+    )}
+    {...props}
+  />
 ));
 TableBody.displayName = "TableBody";
 
@@ -31,7 +38,7 @@ TableFooter.displayName = "TableFooter";
 const TableRow = forwardRef(({ className, ...props }, ref) => (
   <tr
     ref={ref}
-    className={cn("border-b border-border transition-colors hover:bg-muted/40", className)}
+    className={cn("border-b border-border/80 transition-colors hover:bg-accent/55", className)}
     {...props}
   />
 ));

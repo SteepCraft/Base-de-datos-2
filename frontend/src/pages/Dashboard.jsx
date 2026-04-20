@@ -52,29 +52,29 @@ const Dashboard = () => {
       name: "Total Terceros",
       value: terceros.length,
       icon: FiUsers,
-      lightColor: "bg-sky-100 dark:bg-sky-900/30",
-      textColor: "text-sky-700 dark:text-sky-300",
+      cardClass: "border-l-2 border-l-primary/45",
+      iconClass: "bg-primary/15 text-primary",
     },
     {
       name: "Total Asignaturas",
       value: (asignaturasQuery.data || []).length,
       icon: FiBookOpen,
-      lightColor: "bg-emerald-100 dark:bg-emerald-900/30",
-      textColor: "text-emerald-700 dark:text-emerald-300",
+      cardClass: "border-l-2 border-l-ring/40",
+      iconClass: "bg-secondary text-secondary-foreground",
     },
     {
       name: "Total Cursos",
       value: (cursosQuery.data || []).length,
       icon: FiLayers,
-      lightColor: "bg-amber-100 dark:bg-amber-900/30",
-      textColor: "text-amber-700 dark:text-amber-300",
+      cardClass: "border-l-2 border-l-muted-foreground/35",
+      iconClass: "bg-accent text-accent-foreground",
     },
     {
       name: "Total Historias",
       value: (historiasQuery.data || []).length,
       icon: FiClipboard,
-      lightColor: "bg-orange-100 dark:bg-orange-900/30",
-      textColor: "text-orange-700 dark:text-orange-300",
+      cardClass: "border-l-2 border-l-border",
+      iconClass: "bg-muted text-muted-foreground",
     },
   ];
 
@@ -114,11 +114,11 @@ const Dashboard = () => {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.name}>
+            <Card key={stat.name} className={stat.cardClass}>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className={`rounded-lg p-3 ${stat.lightColor}`}>
-                    <Icon className={`size-6 ${stat.textColor}`} />
+                  <div className={`rounded-lg p-3 ${stat.iconClass}`}>
+                    <Icon className="size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-muted-foreground">{stat.name}</p>
@@ -213,7 +213,7 @@ const Dashboard = () => {
                         Periodo {pensum.pens_periodo || "N/A"}
                       </p>
                     </div>
-                    <Badge className="inline-flex items-center gap-1" variant="success">
+                    <Badge className="inline-flex items-center gap-1" variant="secondary">
                       <FiFileText className="size-3.5" />
                       Activo
                     </Badge>

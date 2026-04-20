@@ -416,110 +416,115 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
         </section>
       ) : null}
 
-      <section className="mb-6 flex justify-end">
-        <Dialog
-          open={isModalOpen}
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) {
-              closeModal();
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button onClick={openCreate}>
-              <Plus className="size-4" />
-              Nuevo registro
-            </Button>
-          </DialogTrigger>
+      <section className="mb-6 rounded-xl border border-border/70 bg-card/90 p-4">
+        <div className="flex justify-end">
+          <Dialog
+            open={isModalOpen}
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen) {
+                closeModal();
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button onClick={openCreate}>
+                <Plus className="size-4" />
+                Nuevo registro
+              </Button>
+            </DialogTrigger>
 
-          <DialogContent>
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>{editingRow ? "Editar registro" : "Crear registro"}</DialogTitle>
-                <DialogDescription>
-                  Completa la informacion para relacionar datos.
-                </DialogDescription>
-              </DialogHeader>
+            <DialogContent>
+              <form onSubmit={handleSubmit}>
+                <DialogHeader>
+                  <DialogTitle>{editingRow ? "Editar registro" : "Crear registro"}</DialogTitle>
+                  <DialogDescription>
+                    Completa la informacion para relacionar datos.
+                  </DialogDescription>
+                </DialogHeader>
 
-              <div className="grid grid-cols-1 gap-4 px-6 py-5 md:grid-cols-2">
-                {config.fields.map((field) => {
-                  const isPk = config.pk.includes(field);
-                  const disabled = Boolean(editingRow && isPk);
-                  const isForeignKey = Boolean(config.foreignKeys?.[field]);
-                  const error = formErrors[field];
-                  const fieldLabel = getFriendlyFieldLabel(config, field);
+                <div className="grid grid-cols-1 gap-4 px-6 py-5 md:grid-cols-2">
+                  {config.fields.map((field) => {
+                    const isPk = config.pk.includes(field);
+                    const disabled = Boolean(editingRow && isPk);
+                    const isForeignKey = Boolean(config.foreignKeys?.[field]);
+                    const error = formErrors[field];
+                    const fieldLabel = getFriendlyFieldLabel(config, field);
 
-                  return (
-                    <div key={field} className="space-y-2">
-                      <Label htmlFor={`${entityKey}-${field}`} className="text-sm font-medium">
-                        {fieldLabel}
-                        {isPk ? (
-                          <span className="ml-1 text-red-500" title="Requerido">
-                            *
-                          </span>
-                        ) : null}
-                      </Label>
+                    return (
+                      <div
+                        key={field}
+                        className="flex flex-col gap-2 rounded-lg border border-border/70 bg-muted/20 p-3"
+                      >
+                        <Label htmlFor={`${entityKey}-${field}`} className="text-sm font-medium">
+                          {fieldLabel}
+                          {isPk ? (
+                            <span className="ml-1 text-destructive" title="Requerido">
+                              *
+                            </span>
+                          ) : null}
+                        </Label>
 
-                      {isForeignKey ? (
-                        <SearchableForeignKeyField
-                          entityName={config.foreignKeys[field]}
-                          value={formData[field]}
-                          initialLabel={relationshipLabels[field]}
-                          onChange={(nextValue) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              [field]: nextValue,
-                            }))
-                          }
-                          disabled={disabled}
-                          error={error}
-                          placeholder={`Seleccionar ${fieldLabel.toLowerCase()}...`}
-                        />
-                      ) : (
-                        <>
-                          <Input
-                            id={`${entityKey}-${field}`}
-                            disabled={disabled}
-                            value={formData[field] ?? ""}
-                            onChange={(event) =>
+                        {isForeignKey ? (
+                          <SearchableForeignKeyField
+                            entityName={config.foreignKeys[field]}
+                            value={formData[field]}
+                            initialLabel={relationshipLabels[field]}
+                            onChange={(nextValue) =>
                               setFormData((prev) => ({
                                 ...prev,
-                                [field]: event.target.value,
+                                [field]: nextValue,
                               }))
                             }
-                            className={cn(error && "border-red-300")}
+                            disabled={disabled}
+                            error={error}
+                            placeholder={`Seleccionar ${fieldLabel.toLowerCase()}...`}
                           />
-                          {error ? <p className="text-xs text-destructive">{error}</p> : null}
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                        ) : (
+                          <>
+                            <Input
+                              id={`${entityKey}-${field}`}
+                              disabled={disabled}
+                              value={formData[field] ?? ""}
+                              onChange={(event) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  [field]: event.target.value,
+                                }))
+                              }
+                              className={cn(error && "border-destructive/45")}
+                            />
+                            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={closeModal}>
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                >
-                  {createMutation.isPending || updateMutation.isPending ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : editingRow ? (
-                    "Actualizar"
-                  ) : (
-                    "Crear"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={closeModal}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                  >
+                    {createMutation.isPending || updateMutation.isPending ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : editingRow ? (
+                      "Actualizar"
+                    ) : (
+                      "Crear"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

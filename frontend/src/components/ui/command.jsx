@@ -8,7 +8,7 @@ const Command = forwardRef(({ className, ...props }, ref) => (
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-lg bg-popover text-popover-foreground",
+      "flex h-full w-full flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-sm",
       className,
     )}
     {...props}
@@ -70,7 +70,7 @@ const CommandItem = forwardRef(({ className, ...props }, ref) => (
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default gap-2 select-none items-center rounded-md px-2 py-1.5 text-sm outline-none transition-colors data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+      "relative flex cursor-pointer gap-2 select-none items-center rounded-md border border-transparent px-2 py-1.5 text-sm outline-none transition-colors hover:border-border hover:bg-accent/70 data-[selected=true]:border-border data-[selected=true]:bg-accent data-[selected=true]:font-medium data-[selected=true]:text-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
       className,
     )}
     {...props}

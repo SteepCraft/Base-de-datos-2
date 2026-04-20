@@ -18,10 +18,30 @@ const envAuthOnly = AUTH_MODE === "env";
 
 app.use(cookieParser());
 
-const corsWhitelist = (process.env.FRONTEND_URL || "")
+const configuredCorsOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
   .map((url) => url.trim())
   .filter((url) => url.length > 0);
+
+const localDevOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1):5\d{3}$/;
+
+const isAllowedCorsOrigin = (origin) => {
+  if (!origin) {
+    // Permite clientes sin origin (curl, Postman, scripts de servidor).
+    return true;
+  }
+
+  if (configuredCorsOrigins.includes(origin)) {
+    return true;
+  }
+
+  // En desarrollo, permite puertos locales dinámicos de Vite (5173, 5174, ...).
+  if (process.env.NODE_ENV !== "production" && localDevOriginPattern.test(origin)) {
+    return true;
+  }
+
+  return false;
+};
 
 /**
  * Inicialización de Sequelize y modelos.
@@ -66,7 +86,9 @@ const corsWhitelist = (process.env.FRONTEND_URL || "")
 
 // CORS - Permitir peticiones desde el frontend
 const corsOptions = {
-  origin: corsWhitelist,
+  origin: (origin, callback) => {
+    callback(null, isAllowedCorsOrigin(origin));
+  },
   credentials: true, // Permitir cookies
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
