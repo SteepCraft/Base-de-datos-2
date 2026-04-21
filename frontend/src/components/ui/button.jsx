@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent text-sm font-semibold transition-[color,background-color,border-color,box-shadow,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-[#f5f7fa]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-background text-foreground text-sm font-semibold transition-[color,background-color,border-color,box-shadow,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -16,7 +16,7 @@ const buttonVariants = cva(
         outline:
           "border-border bg-card text-foreground shadow-sm hover:-translate-y-px hover:bg-accent hover:text-accent-foreground hover:shadow",
         ghost:
-          "text-foreground hover:border-border hover:bg-accent/80 hover:text-accent-foreground",
+          "border-border/60 bg-muted/55 text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:bg-accent/80 hover:text-accent-foreground hover:shadow",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:-translate-y-px hover:bg-destructive/90 hover:shadow",
         danger:

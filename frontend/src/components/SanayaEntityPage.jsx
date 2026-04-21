@@ -167,7 +167,7 @@ const SearchableForeignKeyField = ({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              "w-full justify-between font-normal",
+              "w-full justify-between bg-background font-normal",
               !selectedLabel && "text-muted-foreground",
               error && "border-destructive/60 text-destructive",
             )}
@@ -195,12 +195,21 @@ const SearchableForeignKeyField = ({
                     <CommandItem
                       key={option.id}
                       value={`${option.id} ${cleanDisplayText(option.label)}`}
+                      className={cn(
+                        "text-foreground hover:bg-muted/70 hover:text-foreground",
+                        isSelected && "border-border bg-accent/70 text-foreground",
+                      )}
                       onSelect={() => {
                         onChange(String(option.id));
                         handleClose();
                       }}
                     >
-                      <Check className={cn("size-4", isSelected ? "opacity-100" : "opacity-0")} />
+                      <Check
+                        className={cn(
+                          "size-4 text-primary",
+                          isSelected ? "opacity-100" : "opacity-0",
+                        )}
+                      />
                       <span className="line-clamp-1">{cleanDisplayText(option.label)}</span>
                     </CommandItem>
                   );

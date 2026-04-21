@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
 const Table = forwardRef(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-xl bg-[#f5f7fa]">
+  <div className="relative w-full overflow-auto rounded-xl border border-border/70 bg-card/80">
     <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
   </div>
 ));
@@ -18,7 +18,7 @@ const TableBody = forwardRef(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
     className={cn(
-      "[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-[#e9ecef] [&_tr:nth-child(odd)]:bg-[#f5f7fa]",
+      "[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-muted/35 [&_tr:nth-child(odd)]:bg-background/50",
       className,
     )}
     {...props}
@@ -38,7 +38,10 @@ TableFooter.displayName = "TableFooter";
 const TableRow = forwardRef(({ className, ...props }, ref) => (
   <tr
     ref={ref}
-    className={cn("border-b border-border/80 transition-colors hover:bg-accent/55", className)}
+    className={cn(
+      "border-b border-border/80 text-foreground transition-colors hover:bg-accent/60",
+      className,
+    )}
     {...props}
   />
 ));
@@ -57,7 +60,7 @@ const TableHead = forwardRef(({ className, ...props }, ref) => (
 TableHead.displayName = "TableHead";
 
 const TableCell = forwardRef(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn("px-5 py-3 align-middle", className)} {...props} />
+  <td ref={ref} className={cn("px-5 py-3 align-middle text-foreground", className)} {...props} />
 ));
 TableCell.displayName = "TableCell";
 

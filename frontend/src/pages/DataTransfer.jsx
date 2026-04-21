@@ -339,7 +339,7 @@ const DataTransfer = () => {
                 <SelectTrigger id="import-entity-select">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120] border-2 border-border bg-background bg-[hsl(var(--background))] text-foreground text-[hsl(var(--foreground))] opacity-100 shadow-2xl">
                   <SelectGroup>
                     {transferEntityOptions.map((entityOption) => (
                       <SelectItem key={entityOption.value} value={entityOption.value}>
@@ -414,7 +414,7 @@ const DataTransfer = () => {
                 <SelectTrigger id="entity-select">
                   <SelectValue placeholder="Seleccionar entidad" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[120] border-2 border-border bg-background bg-[hsl(var(--background))] text-foreground text-[hsl(var(--foreground))] opacity-100 shadow-2xl">
                   <SelectGroup>
                     {transferEntityOptions.map((entityOption) => (
                       <SelectItem key={entityOption.value} value={entityOption.value}>
@@ -526,10 +526,10 @@ const DataTransfer = () => {
                           type="button"
                           onClick={() => handleSort("excelRow")}
                           className={cn(
-                            "inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-semibold transition-colors",
+                            "inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/55 px-2 py-1 text-xs font-semibold transition-colors",
                             sortColumn === "excelRow"
                               ? "border-border bg-accent text-foreground"
-                              : "text-muted-foreground hover:border-border hover:bg-accent/70 hover:text-foreground",
+                              : "text-foreground/90 hover:border-border hover:bg-accent/70 hover:text-foreground",
                           )}
                         >
                           Fila (Excel) {getSortIndicator("excelRow")}
@@ -541,10 +541,10 @@ const DataTransfer = () => {
                             type="button"
                             onClick={() => handleSort(column)}
                             className={cn(
-                              "inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-semibold transition-colors",
+                              "inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/55 px-2 py-1 text-xs font-semibold transition-colors",
                               sortColumn === column
                                 ? "border-border bg-accent text-foreground"
-                                : "text-muted-foreground hover:border-border hover:bg-accent/70 hover:text-foreground",
+                                : "text-foreground/90 hover:border-border hover:bg-accent/70 hover:text-foreground",
                             )}
                           >
                             {column} {getSortIndicator(column)}
