@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
 const Table = forwardRef(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-xl bg-card/90">
+  <div className="relative w-full overflow-auto rounded-xl bg-[#f5f7fa]">
     <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
   </div>
 ));
@@ -18,7 +18,7 @@ const TableBody = forwardRef(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
     className={cn(
-      "[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-muted/20 [&_tr:nth-child(odd)]:bg-card/80",
+      "[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-[#e9ecef] [&_tr:nth-child(odd)]:bg-[#f5f7fa]",
       className,
     )}
     {...props}
