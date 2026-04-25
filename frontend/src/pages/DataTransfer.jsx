@@ -33,6 +33,7 @@ import {
 import { Input } from "../components/ui/input";
 import api from "../config/api";
 import { SANAYA_ENTITIES } from "../config/sanayaApi";
+import { useTheme } from "../context/ThemeContext";
 import { cn } from "../lib/utils";
 
 const DATA_TRANSFER_ENTITY_PARAM_MAP = {
@@ -43,6 +44,7 @@ const toTransferEntityParam = (entityKey) =>
   DATA_TRANSFER_ENTITY_PARAM_MAP[entityKey] || entityKey.replace(/-/g, "_");
 
 const DataTransfer = () => {
+  const { theme } = useTheme();
   const [file, setFile] = useState(null);
   const [exportEntity, setExportEntity] = useState("historias");
   const [importEntity, setImportEntity] = useState("terceros");
@@ -83,6 +85,31 @@ const DataTransfer = () => {
   const importEntityLabel = selectedImportEntity?.label ?? importEntity;
   const previewColumns = importPreview?.columns || [];
   const previewRows = importPreview?.rows || [];
+  const isDarkTheme = theme === "dark";
+
+  const previewDialogClass = isDarkTheme
+    ? "max-w-6xl border-zinc-700 bg-zinc-950 text-zinc-100"
+    : "max-w-6xl border-slate-200 bg-white text-slate-900";
+
+  const previewHeaderClass = isDarkTheme ? "border-zinc-800" : "border-slate-200";
+  const previewDescriptionClass = isDarkTheme ? "text-zinc-300" : "text-slate-600";
+
+  const previewContainerClass = isDarkTheme
+    ? "max-h-[55vh] overflow-auto rounded-lg border border-zinc-800 bg-zinc-900 px-6 pb-2"
+    : "max-h-[55vh] overflow-auto rounded-lg border border-slate-200 bg-slate-50 px-6 pb-2";
+
+  const previewCounterClass = isDarkTheme ? "text-xs text-zinc-300" : "text-xs text-slate-600";
+
+  const previewTableWrapperClass = isDarkTheme
+    ? "[&>div]:!border-zinc-800 [&>div]:!bg-zinc-900"
+    : "[&>div]:!border-slate-200 [&>div]:!bg-white";
+
+  const previewTableHeaderClass = isDarkTheme ? "!bg-zinc-800" : "!bg-slate-100";
+
+  const previewTableBodyClass = isDarkTheme
+    ? "[&_tr:nth-child(even)]:!bg-zinc-900 [&_tr:nth-child(odd)]:!bg-zinc-950"
+    : "[&_tr:nth-child(even)]:!bg-slate-50 [&_tr:nth-child(odd)]:!bg-white";
+
   const hasFailedRows = Array.isArray(importSummary?.failed) && importSummary.failed.length > 0;
 
   const filteredPreviewRows = useMemo(() => {
@@ -493,17 +520,17 @@ const DataTransfer = () => {
       ) : null}
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-6xl">
-          <DialogHeader>
+        <DialogContent className={previewDialogClass}>
+          <DialogHeader className={previewHeaderClass}>
             <DialogTitle>Previsualización de importación</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className={previewDescriptionClass}>
               {importPreview
                 ? `Entidad: ${importEntityLabel}. Archivo: ${file?.name || "sin archivo"}. Mostrando ${importPreview.previewRows} de ${importPreview.totalRows} filas.`
                 : "No hay datos para previsualizar."}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[55vh] overflow-auto rounded-lg border border-border/70 bg-muted/20 px-6 pb-2">
+          <div className={previewContainerClass}>
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Input
                 value={previewSearch}
@@ -511,64 +538,80 @@ const DataTransfer = () => {
                 placeholder="Buscar en el preview..."
                 className="sm:max-w-xs"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className={previewCounterClass}>
                 Mostrando {sortedPreviewRows.length} de {previewRows.length} filas de la muestra.
               </p>
             </div>
 
             {previewRows.length > 0 ? (
               sortedPreviewRows.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <button
-                          type="button"
-                          onClick={() => handleSort("excelRow")}
-                          className={cn(
-                            "inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/55 px-2 py-1 text-xs font-semibold transition-colors",
-                            sortColumn === "excelRow"
-                              ? "border-border bg-accent text-foreground"
-                              : "text-foreground/90 hover:border-border hover:bg-accent/70 hover:text-foreground",
-                          )}
-                        >
-                          Fila (Excel) {getSortIndicator("excelRow")}
-                        </button>
-                      </TableHead>
-                      {previewColumns.map((column) => (
-                        <TableHead key={column}>
+                <div className={previewTableWrapperClass}>
+                  <Table>
+                    <TableHeader className={previewTableHeaderClass}>
+                      <TableRow>
+                        <TableHead>
                           <button
                             type="button"
-                            onClick={() => handleSort(column)}
+                            onClick={() => handleSort("excelRow")}
                             className={cn(
-                              "inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/55 px-2 py-1 text-xs font-semibold transition-colors",
-                              sortColumn === column
-                                ? "border-border bg-accent text-foreground"
-                                : "text-foreground/90 hover:border-border hover:bg-accent/70 hover:text-foreground",
+                              "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold transition-colors",
+                              isDarkTheme
+                                ? "border-zinc-700 bg-zinc-800"
+                                : "border-slate-300 bg-white",
+                              sortColumn === "excelRow"
+                                ? isDarkTheme
+                                  ? "border-zinc-500 bg-zinc-700 text-zinc-100"
+                                  : "border-slate-400 bg-slate-200 text-slate-900"
+                                : isDarkTheme
+                                  ? "text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700 hover:text-zinc-100"
+                                  : "text-slate-700 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900",
                             )}
                           >
-                            {column} {getSortIndicator(column)}
+                            Fila (Excel) {getSortIndicator("excelRow")}
                           </button>
                         </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedPreviewRows.map((previewRow) => (
-                      <TableRow key={previewRow.excelRow}>
-                        <TableCell>{previewRow.excelRow}</TableCell>
-                        {previewColumns.map((column) => {
-                          const value = previewRow.data[column];
-                          return (
-                            <TableCell key={`${previewRow.excelRow}-${column}`}>
-                              {value === "" ? "N/A" : value}
-                            </TableCell>
-                          );
-                        })}
+                        {previewColumns.map((column) => (
+                          <TableHead key={column}>
+                            <button
+                              type="button"
+                              onClick={() => handleSort(column)}
+                              className={cn(
+                                "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold transition-colors",
+                                isDarkTheme
+                                  ? "border-zinc-700 bg-zinc-800"
+                                  : "border-slate-300 bg-white",
+                                sortColumn === column
+                                  ? isDarkTheme
+                                    ? "border-zinc-500 bg-zinc-700 text-zinc-100"
+                                    : "border-slate-400 bg-slate-200 text-slate-900"
+                                  : isDarkTheme
+                                    ? "text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700 hover:text-zinc-100"
+                                    : "text-slate-700 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900",
+                              )}
+                            >
+                              {column} {getSortIndicator(column)}
+                            </button>
+                          </TableHead>
+                        ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody className={previewTableBodyClass}>
+                      {sortedPreviewRows.map((previewRow) => (
+                        <TableRow key={previewRow.excelRow}>
+                          <TableCell>{previewRow.excelRow}</TableCell>
+                          {previewColumns.map((column) => {
+                            const value = previewRow.data[column];
+                            return (
+                              <TableCell key={`${previewRow.excelRow}-${column}`}>
+                                {value === "" ? "N/A" : value}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               ) : (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   No hay filas que coincidan con la búsqueda.

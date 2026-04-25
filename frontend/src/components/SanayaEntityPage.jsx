@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import PropTypes from "prop-types";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   createEntity,
@@ -11,6 +11,7 @@ import {
   searchEntity,
   updateEntity,
 } from "../config/sanayaApi";
+import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 import {
   AlertDialog,
@@ -46,6 +47,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 const emptyForm = (fields) => fields.reduce((acc, field) => ({ ...acc, [field]: "" }), {});
+
+const AUDITORIA_AUTO_FIELDS = new Set(["audi_usuario", "audi_fecha"]);
+
+const resolveAuditoriaUser = (user) => {
+  const fullName = [user?.nombres, user?.apellidos].filter(Boolean).join(" ").trim();
+  const candidate = [user?.email, fullName, user?.id]
+    .map((value) => (value === undefined || value === null ? "" : String(value).trim()))
+    .find(Boolean);
+
+  return (candidate || "sistema").slice(0, 50);
+};
+
+const buildAuditoriaDefaults = (user) => ({
+  audi_usuario: resolveAuditoriaUser(user),
+  audi_fecha: new Date().toISOString(),
+});
 
 const cleanDisplayText = (value) => {
   if (value === null || value === undefined) return "";
@@ -247,10 +264,24 @@ SearchableForeignKeyField.defaultProps = {
 const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
   const config = SANAYA_ENTITIES[entityKey];
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  const createInitialFormData = useCallback(() => {
+    const initialData = emptyForm(config.fields);
+
+    if (entityKey !== "auditorias") {
+      return initialData;
+    }
+
+    return {
+      ...initialData,
+      ...buildAuditoriaDefaults(user),
+    };
+  }, [config.fields, entityKey, user]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
-  const [formData, setFormData] = useState(emptyForm(config.fields));
+  const [formData, setFormData] = useState(() => createInitialFormData());
   const [formErrors, setFormErrors] = useState({});
   const [relationshipLabels, setRelationshipLabels] = useState({});
   const [rowToDelete, setRowToDelete] = useState(null);
@@ -267,7 +298,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
       queryClient.invalidateQueries({ queryKey: ["sanaya", entityKey] });
       setIsModalOpen(false);
       setEditingRow(null);
-      setFormData(emptyForm(config.fields));
+      setFormData(createInitialFormData());
       setFormErrors({});
       setRelationshipLabels({});
     },
@@ -279,7 +310,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
       queryClient.invalidateQueries({ queryKey: ["sanaya", entityKey] });
       setIsModalOpen(false);
       setEditingRow(null);
-      setFormData(emptyForm(config.fields));
+      setFormData(createInitialFormData());
       setFormErrors({});
       setRelationshipLabels({});
     },
@@ -299,6 +330,14 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
     () => config.fields.filter((field) => !(field.endsWith("_id") && !config.foreignKeys?.[field])),
     [config],
   );
+
+  const formFields = useMemo(() => {
+    if (entityKey !== "auditorias") {
+      return config.fields;
+    }
+
+    return config.fields.filter((field) => !AUDITORIA_AUTO_FIELDS.has(field));
+  }, [config.fields, entityKey]);
 
   const getPkValues = (row) =>
     config.pk.reduce((acc, field) => ({ ...acc, [field]: row[field] }), {});
@@ -338,7 +377,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
 
   const openCreate = () => {
     setEditingRow(null);
-    setFormData(emptyForm(config.fields));
+    setFormData(createInitialFormData());
     setFormErrors({});
     setRelationshipLabels({});
     setIsModalOpen(true);
@@ -366,7 +405,7 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingRow(null);
-    setFormData(emptyForm(config.fields));
+    setFormData(createInitialFormData());
     setFormErrors({});
     setRelationshipLabels({});
   };
@@ -399,7 +438,14 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
 
     setFormErrors({});
 
-    const payload = { ...formData };
+    const payload =
+      !editingRow && entityKey === "auditorias"
+        ? {
+            ...formData,
+            ...buildAuditoriaDefaults(user),
+          }
+        : { ...formData };
+
     if (editingRow) {
       updateMutation.mutate({
         payload,
@@ -416,125 +462,127 @@ const SanayaEntityPage = ({ entityKey, showHeader, subtitle, title }) => {
     deleteMutation.mutate(getPkValues(rowToDelete));
   };
 
+  const createRecordDialog = (
+    <Dialog
+      open={isModalOpen}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          closeModal();
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button onClick={openCreate} className="shrink-0">
+          <Plus className="size-4" />
+          Nuevo registro
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="max-h-[90vh] overflow-auto bg-background">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>{editingRow ? "Editar registro" : "Crear registro"}</DialogTitle>
+            <DialogDescription>Completa la informacion para relacionar datos.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-4 px-6 py-5 md:grid-cols-2">
+            {formFields.map((field) => {
+              const isPk = config.pk.includes(field);
+              const disabled = Boolean(editingRow && isPk);
+              const isForeignKey = Boolean(config.foreignKeys?.[field]);
+              const error = formErrors[field];
+              const fieldLabel = getFriendlyFieldLabel(config, field);
+
+              return (
+                <div
+                  key={field}
+                  className="flex flex-col gap-2 rounded-lg border border-border/70 bg-muted/20 p-3"
+                >
+                  <Label htmlFor={`${entityKey}-${field}`} className="text-sm font-medium">
+                    {fieldLabel}
+                    {isPk ? (
+                      <span className="ml-1 text-destructive" title="Requerido">
+                        *
+                      </span>
+                    ) : null}
+                  </Label>
+
+                  {isForeignKey ? (
+                    <SearchableForeignKeyField
+                      entityName={config.foreignKeys[field]}
+                      value={formData[field]}
+                      initialLabel={relationshipLabels[field]}
+                      onChange={(nextValue) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          [field]: nextValue,
+                        }))
+                      }
+                      disabled={disabled}
+                      error={error}
+                      placeholder={`Seleccionar ${fieldLabel.toLowerCase()}...`}
+                    />
+                  ) : (
+                    <>
+                      <Input
+                        id={`${entityKey}-${field}`}
+                        disabled={disabled}
+                        value={formData[field] ?? ""}
+                        onChange={(event) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            [field]: event.target.value,
+                          }))
+                        }
+                        className={cn(error && "border-destructive/45")}
+                      />
+                      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeModal}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              {createMutation.isPending || updateMutation.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : editingRow ? (
+                "Actualizar"
+              ) : (
+                "Crear"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8">
       {showHeader ? (
         <section className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle || config.label}</p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{subtitle || config.label}</p>
+            </div>
+            {createRecordDialog}
+          </div>
         </section>
-      ) : null}
-
-      <section className="mb-6 rounded-xl border border-border/70 bg-card/90 p-4">
-        <div className="flex justify-end">
-          <Dialog
-            open={isModalOpen}
-            onOpenChange={(nextOpen) => {
-              if (!nextOpen) {
-                closeModal();
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button onClick={openCreate}>
-                <Plus className="size-4" />
-                Nuevo registro
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent>
-              <form onSubmit={handleSubmit}>
-                <DialogHeader>
-                  <DialogTitle>{editingRow ? "Editar registro" : "Crear registro"}</DialogTitle>
-                  <DialogDescription>
-                    Completa la informacion para relacionar datos.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid grid-cols-1 gap-4 px-6 py-5 md:grid-cols-2">
-                  {config.fields.map((field) => {
-                    const isPk = config.pk.includes(field);
-                    const disabled = Boolean(editingRow && isPk);
-                    const isForeignKey = Boolean(config.foreignKeys?.[field]);
-                    const error = formErrors[field];
-                    const fieldLabel = getFriendlyFieldLabel(config, field);
-
-                    return (
-                      <div
-                        key={field}
-                        className="flex flex-col gap-2 rounded-lg border border-border/70 bg-muted/20 p-3"
-                      >
-                        <Label htmlFor={`${entityKey}-${field}`} className="text-sm font-medium">
-                          {fieldLabel}
-                          {isPk ? (
-                            <span className="ml-1 text-destructive" title="Requerido">
-                              *
-                            </span>
-                          ) : null}
-                        </Label>
-
-                        {isForeignKey ? (
-                          <SearchableForeignKeyField
-                            entityName={config.foreignKeys[field]}
-                            value={formData[field]}
-                            initialLabel={relationshipLabels[field]}
-                            onChange={(nextValue) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                [field]: nextValue,
-                              }))
-                            }
-                            disabled={disabled}
-                            error={error}
-                            placeholder={`Seleccionar ${fieldLabel.toLowerCase()}...`}
-                          />
-                        ) : (
-                          <>
-                            <Input
-                              id={`${entityKey}-${field}`}
-                              disabled={disabled}
-                              value={formData[field] ?? ""}
-                              onChange={(event) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  [field]: event.target.value,
-                                }))
-                              }
-                              className={cn(error && "border-destructive/45")}
-                            />
-                            {error ? <p className="text-xs text-destructive">{error}</p> : null}
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={closeModal}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createMutation.isPending || updateMutation.isPending}
-                  >
-                    {createMutation.isPending || updateMutation.isPending ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        Guardando...
-                      </>
-                    ) : editingRow ? (
-                      "Actualizar"
-                    ) : (
-                      "Crear"
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </section>
+      ) : (
+        <section className="mb-6 rounded-xl border border-border/70 bg-card/90 p-4">
+          <div className="flex justify-end">{createRecordDialog}</div>
+        </section>
+      )}
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <Table>
